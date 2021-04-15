@@ -1,0 +1,35 @@
+<html>
+  <body>
+    <p>Hash: <%= fileHash %></p>
+    <video id="video" controls></video>
+    <script src="./ipfs/dist/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hlsjs-ipfs-loader@0.3.0/dist/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@0.14.17"></script>
+    <script>
+
+        /* global Hls Ipfs HlsjsIpfsLoader */
+        /* eslint-env browser */
+        document.addEventListener('DOMContentLoaded', async () => {
+        const fileHash = '<%= fileHash %>'
+        const fileName = '<%= fileName %>'
+        console.log('hash file: ' + fileHash)
+        const repoPath = 'ipfs-' + Math.random()
+        const node = await Ipfs.create( { repo: repoPath } )
+
+        Hls.DefaultConfig.loader = HlsjsIpfsLoader
+        Hls.DefaultConfig.debug = false
+        if (Hls.isSupported()) {
+            const video = document.getElementById('video')
+            const hls = new Hls()
+            hls.config.ipfs = node
+            hls.config.ipfsHash = fileHash
+            hls.loadSource(fileName)
+            hls.attachMedia(video)
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play())
+        }
+        })
+
+
+    </script>
+  </body>
+</html>

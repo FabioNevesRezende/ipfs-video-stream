@@ -1,0 +1,22 @@
+{
+  "name": "ipfs-video-streamer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.0.17",
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
+    "express-fileupload": "^1.2.1",
+    "fluent-ffmpeg": "^2.1.2",
+    "ipfs": "^0.54.4",
+    "it-all": "^1.0.5",
+    "it-to-buffer": "^2.0.0"
+  }
+}
