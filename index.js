@@ -8,11 +8,13 @@ const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 const fs = require('fs');
 const Path = require('path');
+const cookieParser = require('cookie-parser');
+const db = require('./persistence/db')
+const {User} = require('./persistence/models')
 
 async function main () {
     const state = {}
     state.refs = []
-    state.render = ''
     const repoPath = '.ipfs-node'  + Math.random() 
     const ipfs = await IPFS.create({silent: true, repo: repoPath })
     const app = express()
@@ -27,6 +29,59 @@ async function main () {
 
     app.get('/', (req, res) => {
         res.render('main', {page: 'home', params: { title: 'appname' }})
+    })
+
+    app.get('/singup', (req, res) => {
+        res.render('main', {page: 'singup', params: { title: 'appname' }})
+    })
+
+    app.get('/login', (req, res) => {
+        res.render('main', {page: 'login', params: { title: 'appname' }})
+    })
+
+    app.post('/login', async (req, res) => {
+
+        const { username, password } = req.body;
+
+        // if the username / password is missing, we use status code 400
+        // indicating a bad request was made and send back a message
+        if (!username || !password) {
+            return res.status(400).send(
+            'Request missing username or password param'
+            );
+        }
+
+        try {
+            let user = await User.authenticate(username, password)
+            console.log('returned user: ' + JSON.stringify(user))
+
+            user = await user.authorize();
+
+            res.render('main', {page: 'home', params: {user}})
+
+        } catch (err) {
+            console.log(err)
+            return res.status(400).send('invalid username or password');
+        }
+
+    })
+
+    app.post('/singup', async (req, res) => {
+
+        try {
+            let user = User.persist(req.body.email, req.body.username, req.body.password)
+            // data will be an object with the user and it's authToken
+            let data = await user.authorize();
+            
+            // send back the new user and auth token to the
+            // client { user, authToken }
+            return res.json(data);
+            
+            } catch(err) {
+            return res.status(400).send(err);
+        }
+
+        //res.render('main', {page: 'home', params: { title: 'appname' }})
     })
     
     app.get('/watch', (req, res) => {
@@ -87,8 +142,11 @@ async function main () {
         return fileAdded.cid.toString();
     }
 
-    app.listen(3000, () => {
-        console.log('Server listening on 3000')
+    db.sync().then(() => {
+        app.listen(3000, () => {
+            console.log('Server listening on 3000')
+        })
+    
     })
 
 /* 

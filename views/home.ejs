@@ -1,4 +1,6 @@
 <h1>Upload ipfs</h1>
+<h4>Bem vindo <%= params.user.username %></h4>
+<%= JSON.stringify(params.user) %>
 <form action="/upload" method="POST" enctype="multipart/form-data">
 <label for="">Filename</label>
 <input type="text" name="fileName">
