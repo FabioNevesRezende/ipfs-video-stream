@@ -2,21 +2,19 @@ const IPFS = require('ipfs');
 const express = require('express');
 const fileUpload = require('express-fileupload')
 //const toBuffer = require('it-to-buffer')
-const all = require('it-all')
+//const all = require('it-all')
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 const fs = require('fs');
 const Path = require('path');
 
-/* ffmpeg(filename).addOptions([ 
-    '-hls_time 10',
-    '-hls_segment_filename videos/360p_%03d.ts',
-    '-hls_playlist_type vod'
-]).output('videos/master.m3u8').run() */
-
 async function main () {
-    const ipfs = await IPFS.create({silent: true})
+    const state = {}
+    state.refs = []
+    state.render = ''
+    const repoPath = '.ipfs-node'  + Math.random() 
+    const ipfs = await IPFS.create({silent: true, repo: repoPath })
     const app = express()
     
     app.set('view engine', 'ejs')
@@ -28,11 +26,11 @@ async function main () {
     app.use(express.static(__dirname + '/public'));
 
     app.get('/', (req, res) => {
-        res.render('home')
+        res.render('main', {page: 'home', params: { title: 'appname' }})
     })
-
+    
     app.get('/watch', (req, res) => {
-        res.render('watch', { fileHash: req.query.filehash, fileName: req.query.filename })
+        res.render('main', {page: 'watch', params: {title: 'appname Watch', fileHash: req.query.filehash, fileName: req.query.filename }})
     })
 
     app.post('/upload', (req, res) => {
@@ -45,41 +43,39 @@ async function main () {
                 return res.status(500).send(err)
             }
 
-            ffmpeg(fileName).addOptions([ 
+            await ffmpeg(fileName).addOptions([ 
                 '-hls_time 10',
                 '-hls_segment_filename streamable/part_%03d.ts',
                 '-hls_playlist_type vod'
-            ]).output('streamable/master.m3u8').on('end', () => {
-                fs.readdir('./streamable/', async (err, files) => {
+            ]).output('streamable/master.m3u8').on('end', async () => {
+                await ipfs.files.mkdir(`/videos/${fileName}` , {parents: true});
 
-                    files.forEach(async file => {
-                      console.log(file);
-                      const fromPath = Path.join( './streamable', file );
-                      const stat = await fs.promises.stat( fromPath );
-                      if( stat.isFile() ){
-                        const filecontent = fs.readFileSync(fromPath)
-                        await ipfs.files.write(`/${file}`, filecontent, { create: true })
-                        fs.rmSync(fromPath)
+                fs.readdir('./streamable/', async (err, files) => {
+                    for await (const f of files){
+                        console.log(f);
+                        const fromPath = Path.join( './streamable', f );
+                        const stat = await fs.promises.stat( fromPath );
+                        if( stat.isFile() ){
+                            const filecontent = fs.readFileSync(fromPath)
+                            console.log(`writing ipfs file: /videos/${fileName}/${f}`)
+                            await ipfs.files.write(`/videos/${fileName}/${f}`, filecontent, { create: true })
+                            fs.rmSync(fromPath)
                         }
-                    }); 
-                    dirStat = await ipfs.files.stat('/')
+
+                    }
+
+                    rootStat = await ipfs.files.stat(`/`)
+                    dirStat = await ipfs.files.stat(`/videos/${fileName}`)
+                    console.log(`root cid: ${rootStat.cid.toString()}`)
                     console.log(`dir cid: ${dirStat.cid.toString()}`)
+                    state.refs[fileName] = dirStat.cid.toString()
+                    fs.rmSync(fileName)
     
                 });
 
-
-            }).run() /*.on('data', (chunk) => {
-                console.log('uploading ' + chunk.length + ' of data')
-                ipfs.files.write(`/${fileName}/`, chunk, { create: true });
-
-            })*/
-
-            const fileHash = await addFile(fileName,true)
-
-            fs.unlink(fileName, (err) => {
-                if(err) console.log(err)
-            })
-            res.render('upload', {fileName, fileHash})
+            }).run()   
+               
+            res.render('main', {page: 'upload', params: {title: 'appname Upload', fileName, fileHash: state.refs[fileName]} })
         })
 
     })
@@ -94,6 +90,7 @@ async function main () {
     app.listen(3000, () => {
         console.log('Server listening on 3000')
     })
+
 /* 
     const bufferedContents = await toBuffer(ipfs.cat('QmWCscor6qWPdx53zEQmZvQvuWQYxx1ARRCXwYVE4s9wzJ')) // returns a Buffer
     const stringContents = bufferedContents.toString() // returns a string
