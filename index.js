@@ -11,10 +11,9 @@ const Path = require('path');
 const cookieParser = require('cookie-parser');
 const db = require('./persistence/db')
 const {User} = require('./persistence/models')
+const AuthMiddleware = require('./middleware/auth')
 
 async function main () {
-    const state = {}
-    state.refs = []
     const repoPath = '.ipfs-node'  + Math.random() 
     const ipfs = await IPFS.create({silent: true, repo: repoPath })
     const app = express()
@@ -22,6 +21,9 @@ async function main () {
     app.set('view engine', 'ejs')
     app.use(express.json())
     app.use(express.urlencoded({ extended: true}))
+    
+    app.use(cookieParser());
+    app.use(AuthMiddleware)
 
     app.use(fileUpload())
     
@@ -43,8 +45,6 @@ async function main () {
 
         const { username, password } = req.body;
 
-        // if the username / password is missing, we use status code 400
-        // indicating a bad request was made and send back a message
         if (!username || !password) {
             return res.status(400).send(
             'Request missing username or password param'
@@ -53,11 +53,11 @@ async function main () {
 
         try {
             let user = await User.authenticate(username, password)
-            console.log('returned user: ' + JSON.stringify(user))
+            if(user){
+                console.log('returned user: ' + JSON.stringify(user))
 
-            user = await user.authorize();
-
-            res.render('main', {page: 'home', params: {user}})
+                res.render('main', {page: 'home', params: {user}})
+            } else console.log('Usuário não autenticado')
 
         } catch (err) {
             console.log(err)
@@ -66,15 +66,28 @@ async function main () {
 
     })
 
+    app.post('/logout', async (req, res) => {
+
+        const { user, cookies: { auth_token: authToken } } = req
+      
+        if (user && authToken) {
+          await req.user.logout(authToken);
+          return res.status(204).send()
+        }
+
+        return res.status(400).send(
+          { errors: [{ message: 'not authenticated' }] }
+        );
+      });
+
     app.post('/singup', async (req, res) => {
 
         try {
             let user = User.persist(req.body.email, req.body.username, req.body.password)
-            // data will be an object with the user and it's authToken
+
             let data = await user.authorize();
             
-            // send back the new user and auth token to the
-            // client { user, authToken }
+
             return res.json(data);
             
             } catch(err) {
@@ -123,14 +136,13 @@ async function main () {
                     dirStat = await ipfs.files.stat(`/videos/${fileName}`)
                     console.log(`root cid: ${rootStat.cid.toString()}`)
                     console.log(`dir cid: ${dirStat.cid.toString()}`)
-                    state.refs[fileName] = dirStat.cid.toString()
                     fs.rmSync(fileName)
     
                 });
 
             }).run()   
                
-            res.render('main', {page: 'upload', params: {title: 'appname Upload', fileName, fileHash: state.refs[fileName]} })
+            res.render('main', {page: 'upload', params: {title: 'appname Upload', fileName, fileHash: ''} })
         })
 
     })

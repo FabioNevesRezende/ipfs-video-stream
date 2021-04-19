@@ -1,12 +1,18 @@
 <h1>Upload ipfs</h1>
-<h4>Bem vindo <%= params.user.username %></h4>
-<%= JSON.stringify(params.user) %>
+<h4>Bem vindo <%if(params.user) { %>
+      <%= params.user.username %>
+     <% } else { %>
+        <%= 'visitante' %>
+        <% }  %>
+    </h4>
+        
+<p>UserToken:<%=  params.user.authToken.token %></p>
 <form action="/upload" method="POST" enctype="multipart/form-data">
-<label for="">Filename</label>
-<input type="text" name="fileName">
-<br><br>
-<label for="">File</label>
-<input type="file" name="file" multiple>
-<br><br>
-<input type="submit" value="submit">
+    <label for="">Filename</label>
+    <input type="text" name="fileName">
+    <br><br>
+    <label for="">File</label>
+    <input type="file" name="file" multiple>
+    <br><br>
+    <input type="submit" value="submit">
 </form>

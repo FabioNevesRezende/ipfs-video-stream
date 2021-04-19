@@ -50,50 +50,44 @@ User.persist = (email,username,password,telegramId=null) => {
 
 
 
-User.authenticate = async (username,password) => {
-    if(username && password) {
-        console.log('authenticate: ' + username)
+User.authenticate = async function(username, password) {
 
-        const user1 = await User.findAll({
-            where: {
-                username: username
-            }
-        })
-        if(user1[0])
-        {
-            bcrypt.compare(password, user1[0].password, function(err, res) {
-                // if res == true, password matched
-                // else wrong password
-                if(res){
-                    console.log('Usuário ' + username + ' autenticado')
-                    return user1;
-                }
-                else {
-                    console.log('Usuário ' + username + ' não autenticado')
-                }
-            });
-        } else console.log('Usuário não encontrado')
-        
+    const user = await User.findOne({ where: { username } });
+
+    // bcrypt is a one-way hashing algorithm that allows us to 
+    // store strings on the database rather than the raw
+    // passwords. Check out the docs for more detail
+    if (bcrypt.compareSync(password, user.password)) {
+      return user.authorize();
     }
-};
+
+    throw new Error('invalid password');
+}
 
 const AuthToken = database.define('authtoken', {
     token: {
         type: Sequelize.STRING,
         allowNull: false,
         unique: true,
+        primaryKey: true
+      },
+      userId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        primaryKey: true
       }
 });
 
 AuthToken.associate = function({ User }) {
-    AuthToken.belongsTo(User);
+    AuthToken.belongsTo(User, {foreignKey: 'userId'});
 };
+
 User.associate = function ({ AuthToken }) {
     User.hasMany(AuthToken);
 };
 
-AuthToken.generate = async function(UserId) {
-  if (!UserId) {
+AuthToken.generate = async function(userId) {
+  if (!userId) {
     throw new Error('AuthToken requires a user ID')
   }
   let token = '';
@@ -103,20 +97,21 @@ AuthToken.generate = async function(UserId) {
       Math.floor(Math.random() * possibleCharacters.length) //unsafe
     );
   }
-  return AuthToken.create({ token, UserId })
+  return AuthToken.create({ token, userId })
 }
 
 User.prototype.authorize = async function () {
-    const { AuthToken } = database.models;
     const user = this
-    // create a new auth token associated to 'this' user
-    // by calling the AuthToken class method we created earlier
-    // and passing it the user id
+
     const authToken = await AuthToken.generate(this.id);
-    // addAuthToken is a generated method provided by
-    // sequelize which is made for any 'hasMany' relationships
-    await user.addAuthToken(authToken);
+
+    authToken.userId = user.id;
+
     return { user, authToken }
+};
+
+User.prototype.logout = async function (token) {
+    AuthToken.destroy({ where: { token } });
 };
 
 User.createUser = async function(email,username,password){
