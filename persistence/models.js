@@ -92,12 +92,29 @@ AuthToken.generate = async function(userId) {
   }
   let token = '';
   const possibleCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (var i = 0; i < 15; i++) {
+  for (var i = 0; i < 35; i++) {
     token += possibleCharacters.charAt(
       Math.floor(Math.random() * possibleCharacters.length) //unsafe
     );
   }
+  // todo concatenar token, com user info em sha256
   return AuthToken.create({ token, userId })
+}
+
+AuthToken.validate = async function(token){
+  try{
+    if(token){
+      const authToken = await AuthToken.findOne(
+        { where: { token } }
+      );
+      if(authToken){
+        const user = await User.findOne({where: { id: authToken.userId }}) // 2 query, mt ruim
+        return user;
+      }
+    }
+  } catch(err){
+    return;
+  }
 }
 
 User.prototype.authorize = async function () {

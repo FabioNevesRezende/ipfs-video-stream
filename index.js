@@ -23,22 +23,21 @@ async function main () {
     app.use(express.urlencoded({ extended: true}))
     
     app.use(cookieParser());
-    app.use(AuthMiddleware)
 
     app.use(fileUpload())
     
     app.use(express.static(__dirname + '/public'));
 
     app.get('/', (req, res) => {
-        res.render('main', {page: 'home', params: { title: 'appname' }})
+        res.render('main', {page: 'home', params: {}})
     })
 
     app.get('/singup', (req, res) => {
-        res.render('main', {page: 'singup', params: { title: 'appname' }})
+        res.render('main', {page: 'singup', params: {}})
     })
 
     app.get('/login', (req, res) => {
-        res.render('main', {page: 'login', params: { title: 'appname' }})
+        res.render('main', {page: 'login', params: {}})
     })
 
     app.post('/login', async (req, res) => {
@@ -46,22 +45,21 @@ async function main () {
         const { username, password } = req.body;
 
         if (!username || !password) {
-            return res.status(400).send(
-            'Request missing username or password param'
-            );
+            return res.status(400).render('main', { page: '400', params: {}});
         }
 
         try {
             let user = await User.authenticate(username, password)
             if(user){
                 console.log('returned user: ' + JSON.stringify(user))
+                res.cookie('authToken', user.authToken.token, { maxAge: 900000, httpOnly: true });
 
                 res.render('main', {page: 'home', params: {user}})
             } else console.log('Usuário não autenticado')
 
         } catch (err) {
             console.log(err)
-            return res.status(400).send('invalid username or password');
+            return res.status(400).render('main', { page: '400', params: {}});
         }
 
     })
@@ -75,9 +73,7 @@ async function main () {
           return res.status(204).send()
         }
 
-        return res.status(400).send(
-          { errors: [{ message: 'not authenticated' }] }
-        );
+        return res.status(400).render('main', { page: '400', params: {}});
       });
 
     app.post('/singup', async (req, res) => {
@@ -91,17 +87,21 @@ async function main () {
             return res.json(data);
             
             } catch(err) {
-            return res.status(400).send(err);
+            return res.status(400).render('main', { page: '400', params: {}});
         }
 
-        //res.render('main', {page: 'home', params: { title: 'appname' }})
+        //res.render('main', {page: 'home', params: {}})
     })
     
     app.get('/watch', (req, res) => {
-        res.render('main', {page: 'watch', params: {title: 'appname Watch', fileHash: req.query.filehash, fileName: req.query.filename }})
+        res.render('main', {page: 'watch', params: { fileHash: req.query.filehash, fileName: req.query.filename }})
     })
 
-    app.post('/upload', (req, res) => {
+    app.get('/upload', AuthMiddleware, (req, res) => {
+        res.render('main', {page: 'upload', params: {} })
+    })
+
+    app.post('/video', AuthMiddleware, (req, res) => {
         const file = req.files.file
         const fileName = req.body.fileName
 
@@ -142,7 +142,7 @@ async function main () {
 
             }).run()   
                
-            res.render('main', {page: 'upload', params: {title: 'appname Upload', fileName, fileHash: ''} })
+            res.render('main', {page: 'home', params: { fileName, fileHash: ''} })
         })
 
     })

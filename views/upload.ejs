@@ -1,4 +1,9 @@
-<h1>File Uploaded</h1>
-<p>Name: <%= fileName %></p>
-<p>Link: <a href="https://ipfs.io/ipfs/<%= params.fileHash %>/<%= params.fileName %>"><%= params.fileHash %></a></p>
-<p><a href="/watch?filehash=<%= params.fileHash %>&filename=<%= params.fileName %>">Watch</a></p>
+<form action="/video" method="POST" enctype="multipart/form-data">
+    <label for="">Filename</label>
+    <input type="text" name="fileName">
+    <br><br>
+    <label for="">File</label>
+    <input type="file" name="file" multiple>
+    <br><br>
+    <input type="submit" value="Submit">
+</form>

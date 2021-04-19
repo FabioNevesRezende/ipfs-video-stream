@@ -1,18 +1,15 @@
 <h1>Upload ipfs</h1>
 <h4>Bem vindo <%if(params.user) { %>
       <%= params.user.username %>
+      <p>UserToken:<%=  params.user.authToken.token %></p>
      <% } else { %>
         <%= 'visitante' %>
         <% }  %>
-    </h4>
+</h4>
         
-<p>UserToken:<%=  params.user.authToken.token %></p>
-<form action="/upload" method="POST" enctype="multipart/form-data">
-    <label for="">Filename</label>
-    <input type="text" name="fileName">
-    <br><br>
-    <label for="">File</label>
-    <input type="file" name="file" multiple>
-    <br><br>
-    <input type="submit" value="submit">
-</form>
+<ul>
+    <li><a href="/login">Login</a></li>
+    <li><a href="/singup">Sing Up</a></li>
+    <li><a href="/upload">Upload</a></li>
+    <li><a href="/watch">Watch</a></li>
+</ul>
