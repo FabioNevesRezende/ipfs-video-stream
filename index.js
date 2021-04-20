@@ -46,7 +46,7 @@ async function main () {
         const { username, password } = req.body;
 
         if (!username || !password) {
-            return res.status(400).render('main', { page: '400', params: {}});
+            return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid request' }});
         }
 
         try {
@@ -60,7 +60,7 @@ async function main () {
 
         } catch (err) {
             console.log(err)
-            return res.status(400).render('main', { page: '400', params: {}});
+            return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid credentials' }});
         }
 
     })
@@ -74,7 +74,7 @@ async function main () {
           return res.status(204).send()
         }
 
-        return res.status(400).render('main', { page: '400', params: {}});
+        return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid request' }});
       });
 
     app.post('/singup', async (req, res) => {
@@ -88,7 +88,7 @@ async function main () {
             return res.json(data);
             
             } catch(err) {
-            return res.status(400).render('main', { page: '400', params: {}});
+            return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid credentials' }});
         }
 
         //res.render('main', {page: 'home', params: {}})

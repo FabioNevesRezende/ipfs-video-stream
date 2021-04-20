@@ -16,18 +16,18 @@ module.exports = async function(req, res, next) {
         req.user = user;
       }
       else {
-        res.status(400).render('main', {page: '400', params: {} });
+        res.status(400).render('main', {page: 'error', params: { errorMessage: 'Invalid Token' } });
         return;
       }
     }
     else
     {  
-      res.status(400).render('main', {page: '400', params: {} });
+      res.status(400).render('main', {page: 'error', params: { errorMessage: 'Invalid Token' } });
       return;
     }
   }
   catch(err){
-    res.status(500).render('main', {page: '500', params: {} });
+    res.status(500).render('main', {page: 'error', params: { errorMessage: 'Internal error' } });
 
   }
   next();
