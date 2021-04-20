@@ -12,6 +12,7 @@ const cookieParser = require('cookie-parser');
 const db = require('./persistence/db')
 const {User} = require('./persistence/models')
 const AuthMiddleware = require('./middleware/auth')
+const validateVideoInput = require('./middleware/validateVideoInput')
 
 async function main () {
     const repoPath = '.ipfs-node'  + Math.random() 
@@ -101,7 +102,7 @@ async function main () {
         res.render('main', {page: 'upload', params: {} })
     })
 
-    app.post('/video', AuthMiddleware, (req, res) => {
+    app.post('/video', validateVideoInput, AuthMiddleware, (req, res) => {
         const file = req.files.file
         const fileName = req.body.fileName
 
