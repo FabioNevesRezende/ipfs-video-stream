@@ -13,6 +13,8 @@ const db = require('./persistence/db')
 const {User} = require('./persistence/models')
 const AuthMiddleware = require('./middleware/auth')
 const validateVideoInput = require('./middleware/validateVideoInput')
+const validateSingUp = require('./middleware/validateSingup')
+const validateLogin = require('./middleware/validateLogin')
 
 async function main () {
     const repoPath = '.ipfs-node'  + Math.random() 
@@ -41,7 +43,7 @@ async function main () {
         res.render('main', {page: 'login', params: {}})
     })
 
-    app.post('/login', async (req, res) => {
+    app.post('/login', validateLogin, async (req, res) => {
 
         const { username, password } = req.body;
 
@@ -77,17 +79,20 @@ async function main () {
         return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid request' }});
       });
 
-    app.post('/singup', async (req, res) => {
+    app.post('/singup', validateSingUp, async (req, res) => {
 
         try {
             let user = User.persist(req.body.email, req.body.username, req.body.password)
+            if(user){
+                res.render('main', {page: 'home', params: {} })
 
-            let data = await user.authorize();
+            }
+            else {
+                throw new Error('Error registering the new user, please contact the administration')
+            }
             
-
-            return res.json(data);
-            
-            } catch(err) {
+        } catch(err) {
+            console.log(err)
             return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid credentials' }});
         }
 
@@ -143,7 +148,7 @@ async function main () {
 
             }).run()   
                
-            res.render('main', {page: 'home', params: { fileName, fileHash: ''} })
+            res.render('main', {page: 'home', params: {} })
         })
 
     })
