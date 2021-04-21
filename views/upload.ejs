@@ -1,9 +1,9 @@
 <form action="/video" method="POST" enctype="multipart/form-data">
     <label for="">Filename</label>
-    <input type="text" name="fileName" maxlength="25">
+    <input type="text" name="fileName" maxlength="25" required>
     <br><br>
     <label for="">File</label>
-    <input type="file" name="file" multiple>
+    <input type="file" name="file" required>
     <br><br>
     <input type="submit" value="Submit">
 </form>

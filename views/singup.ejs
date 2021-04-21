@@ -2,16 +2,16 @@
 
     <form method="POST" action="/singup">
         <label to="username">Username:</label>
-        <input type="text" name="username" />
+        <input type="text" name="username" required/>
         <br/>
         <label to="email">Email:</label>
-        <input type="email" name="email" />
+        <input type="email" name="email" required/>
         <br/>
         <label to="password">Password:</label>
-        <input type="password" name="password" />
+        <input type="password" name="password" required/>
         <br/>
         <label to="passwordConfirm">Confirm password:</label>
-        <input type="password" name="passwordConfirm" />
+        <input type="password" name="passwordConfirm" required/>
         <br/>
         <input type="submit" value="Register"/>
         <!--captcha -->
