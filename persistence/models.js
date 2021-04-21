@@ -109,7 +109,7 @@ AuthToken.validate = async function(token){
       );
       if(authToken){
         const user = await User.findOne({where: { id: authToken.userId }}) // 2 query, mt ruim
-        return user;
+        return user.authorize(token);
       }
     }
   } catch(err){
@@ -117,17 +117,22 @@ AuthToken.validate = async function(token){
   }
 }
 
-User.prototype.authorize = async function () {
-    const user = this
-
-    const authToken = await AuthToken.generate(this.id);
-
+User.prototype.authorize = async function (token=undefined) {
+  const user = this
+  let authToken = null
+  if(!token){
+    authToken = await AuthToken.generate(this.id);
+  } else {
+    authToken = await AuthToken.findOne({ where: {token}});
+  }
+  if(authToken!==null){
     authToken.userId = user.id;
 
     return { user, authToken }
+  }
 };
 
-User.prototype.logout = async function (token) {
+User.logout = async function (token) {
     AuthToken.destroy({ where: { token } });
 };
 

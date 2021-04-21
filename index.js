@@ -15,6 +15,7 @@ const AuthMiddleware = require('./middleware/auth')
 const validateVideoInput = require('./middleware/validateVideoInput')
 const validateSingUp = require('./middleware/validateSingup')
 const validateLogin = require('./middleware/validateLogin')
+const getLoggedUser = require('./middleware/getLoggedUser')
 
 async function main () {
     const repoPath = '.ipfs-node'  + Math.random() 
@@ -31,15 +32,21 @@ async function main () {
     
     app.use(express.static(__dirname + '/public'));
 
-    app.get('/', (req, res) => {
-        res.render('main', {page: 'home', params: {}})
+    app.get('/', getLoggedUser, (req, res) => {
+        res.render('main', {page: 'home', params: {user: req.user}})
     })
 
-    app.get('/singup', (req, res) => {
+    app.get('/singup', getLoggedUser, (req, res) => {
+        if(req.user){
+            res.render('main', {page: 'home', params: {user: req.user}})
+        }
         res.render('main', {page: 'singup', params: {}})
     })
 
-    app.get('/login', (req, res) => {
+    app.get('/login', getLoggedUser, (req, res) => {
+        if(req.user){
+            res.render('main', {page: 'home', params: {user: req.user}})
+        }
         res.render('main', {page: 'login', params: {}})
     })
 
@@ -55,7 +62,7 @@ async function main () {
             let user = await User.authenticate(username, password)
             if(user){
                 console.log('returned user: ' + JSON.stringify(user))
-                res.cookie('authToken', user.authToken.token, { maxAge: 900000, httpOnly: true });
+                res.cookie('authToken', user.authToken.token, { maxAge: 43200 /*12 hours*/, httpOnly: true });
 
                 res.render('main', {page: 'home', params: {user}})
             } else console.log('Usuário não autenticado')
@@ -67,13 +74,13 @@ async function main () {
 
     })
 
-    app.post('/logout', async (req, res) => {
+    app.post('/logout', AuthMiddleware, async (req, res) => {
 
-        const { user, cookies: { auth_token: authToken } } = req
+        const { user, cookies: { authToken: authToken } } = req
       
         if (user && authToken) {
-          await req.user.logout(authToken);
-          return res.status(204).send()
+            await User.logout(authToken);
+            return res.render('main', { page: 'home', params: {}})
         }
 
         return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid request' }});
@@ -99,7 +106,7 @@ async function main () {
         //res.render('main', {page: 'home', params: {}})
     })
     
-    app.get('/watch', (req, res) => {
+    app.get('/watch', getLoggedUser, (req, res) => {
         res.render('main', {page: 'watch', params: { fileHash: req.query.filehash, fileName: req.query.filename }})
     })
 
