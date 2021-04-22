@@ -69,7 +69,7 @@ async function main () {
             let user = await User.authenticate(username, password)
             if(user){
                 console.log('returned user: ' + JSON.stringify(user))
-                res.cookie('authToken', user.authToken.token, { maxAge: 43200 /*12 hours*/, httpOnly: true });
+                res.cookie('authToken', user.authToken, { maxAge: 8320000, httpOnly: true });
 
                 res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), user}})
             } else console.log('Usuário não autenticado')
@@ -162,7 +162,7 @@ async function main () {
 
             }).run()   
                
-            res.render('main', {page: 'home', params: {csrfToken: req.csrfToken()} })
+            res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), user: req.user} })
         })
 
     })

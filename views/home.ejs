@@ -1,7 +1,7 @@
 <h1>Upload ipfs</h1>
 <h4>Bem vindo <%if(params.user) { %>
       <%= params.user.username %>
-      <p>UserToken:<%=  params.user.authToken.token %></p>
+      <p>UserToken:<%=  params.user.authToken %></p>
      <% } else { %>
         <%= 'visitante' %>
         <% }  %>

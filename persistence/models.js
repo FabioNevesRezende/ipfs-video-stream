@@ -2,6 +2,7 @@ const Sequelize = require('sequelize');
 const database = require('./db');
 const bcrypt = require('bcrypt');
 const saltRounds = 15;
+var jwt = require('jsonwebtoken');
  
 const User = database.define('user', {
     id: {
@@ -50,6 +51,13 @@ User.persist = (email,username,password,telegramId=null) => {
 
 
 
+User.prototype.verifyToken = function(token){
+  var decoded = jwt.verify(token, this.password)
+  if(decoded && decoded.user){
+    return {...decoded.user, authToken: token }
+  }
+}
+
 User.authenticate = async function(username, password) {
 
     const user = await User.findOne({ where: { username } });
@@ -66,7 +74,7 @@ User.authenticate = async function(username, password) {
 
 const AuthToken = database.define('authtoken', {
     token: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(512),
         allowNull: false,
         unique: true,
         primaryKey: true
@@ -86,19 +94,9 @@ User.associate = function ({ AuthToken }) {
     User.hasMany(AuthToken);
 };
 
-AuthToken.generate = async function(userId) {
-  if (!userId) {
-    throw new Error('AuthToken requires a user ID')
-  }
-  let token = '';
-  const possibleCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (var i = 0; i < 35; i++) {
-    token += possibleCharacters.charAt(
-      Math.floor(Math.random() * possibleCharacters.length) //unsafe
-    );
-  }
-  // todo concatenar token, com user info em sha256
-  return AuthToken.create({ token, userId })
+AuthToken.generate = function(user){
+  var token = jwt.sign({ user }, user.password);
+  return AuthToken.create({ token, userId: user.id })
 }
 
 AuthToken.validate = async function(token){
@@ -109,7 +107,7 @@ AuthToken.validate = async function(token){
       );
       if(authToken){
         const user = await User.findOne({where: { id: authToken.userId }}) // 2 query, mt ruim
-        return user.authorize(token);
+        return user.verifyToken(token);
       }
     }
   } catch(err){
@@ -119,16 +117,16 @@ AuthToken.validate = async function(token){
 
 User.prototype.authorize = async function (token=undefined) {
   const user = this
-  let authToken = null
+  let at = null
   if(!token){
-    authToken = await AuthToken.generate(this.id);
+    at = await AuthToken.generate(user);
   } else {
-    authToken = await AuthToken.findOne({ where: {token}});
+    at = await AuthToken.findOne({ where: {token}});
   }
-  if(authToken!==null){
-    authToken.userId = user.id;
+  if(at!==null){
+    at.userId = user.id;
 
-    return { user, authToken }
+    return {...user, authToken: at.token }
   }
 };
 

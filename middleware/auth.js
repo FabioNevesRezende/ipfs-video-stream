@@ -7,7 +7,7 @@ module.exports = async function(req, res, next) {
     req.cookies.authToken || req.headers.authorization;
 
   try{
-    if (token && token.length === 35) {
+    if (token) {
       console.log(`running middleware auth for token ${token}`)
       
       let user = await AuthToken.validate(token)

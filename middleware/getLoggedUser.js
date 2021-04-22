@@ -7,12 +7,13 @@ module.exports = async function(req, res, next) {
 
   try{
 
-    if (token && token.length === 35) {
+    if (token) {
       console.log(`running middleware find logged user ${token}`)
       
       let user = await AuthToken.validate(token)
 
       if (user) {
+        console.log(`middleware found user ${user.username}`)
         req.user = user;
       }
     }
