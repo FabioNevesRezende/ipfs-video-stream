@@ -5,5 +5,6 @@
     <label for="">File</label>
     <input type="file" name="file" required>
     <br><br>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
     <input type="submit" value="Submit">
 </form>

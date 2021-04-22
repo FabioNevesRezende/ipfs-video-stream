@@ -16,11 +16,17 @@ const validateVideoInput = require('./middleware/validateVideoInput')
 const validateSingUp = require('./middleware/validateSingup')
 const validateLogin = require('./middleware/validateLogin')
 const getLoggedUser = require('./middleware/getLoggedUser')
+const csurf = require('csurf');
+const handleCsrfError = require('./middleware/handleCsrfError');
 
 async function main () {
     const repoPath = '.ipfs-node'  + Math.random() 
     const ipfs = await IPFS.create({silent: true, repo: repoPath })
     const app = express()
+
+    const csrfMiddleware = csurf({
+        cookie: true
+    });
     
     app.set('view engine', 'ejs')
     app.use(express.json())
@@ -31,23 +37,24 @@ async function main () {
     app.use(fileUpload())
     
     app.use(express.static(__dirname + '/public'));
-
+    app.use(csrfMiddleware);
+    app.use(handleCsrfError)
     app.get('/', getLoggedUser, (req, res) => {
-        res.render('main', {page: 'home', params: {user: req.user}})
+        res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), user: req.user}})
     })
 
     app.get('/singup', getLoggedUser, (req, res) => {
         if(req.user){
-            res.render('main', {page: 'home', params: {user: req.user}})
+            res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), user: req.user}})
         }
-        res.render('main', {page: 'singup', params: {}})
+        res.render('main', {page: 'singup', params: {csrfToken: req.csrfToken()}})
     })
 
     app.get('/login', getLoggedUser, (req, res) => {
         if(req.user){
-            res.render('main', {page: 'home', params: {user: req.user}})
+            res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), user: req.user}})
         }
-        res.render('main', {page: 'login', params: {}})
+        res.render('main', {page: 'login', params: {csrfToken: req.csrfToken()}})
     })
 
     app.post('/login', validateLogin, async (req, res) => {
@@ -64,7 +71,7 @@ async function main () {
                 console.log('returned user: ' + JSON.stringify(user))
                 res.cookie('authToken', user.authToken.token, { maxAge: 43200 /*12 hours*/, httpOnly: true });
 
-                res.render('main', {page: 'home', params: {user}})
+                res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), user}})
             } else console.log('Usuário não autenticado')
 
         } catch (err) {
@@ -80,7 +87,7 @@ async function main () {
       
         if (user && authToken) {
             await User.logout(authToken);
-            return res.render('main', { page: 'home', params: {}})
+            return res.render('main', { page: 'home', params: {csrfToken: req.csrfToken()}})
         }
 
         return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid request' }});
@@ -91,7 +98,7 @@ async function main () {
         try {
             let user = User.persist(req.body.email, req.body.username, req.body.password)
             if(user){
-                res.render('main', {page: 'home', params: {} })
+                res.render('main', {page: 'home', params: {csrfToken: req.csrfToken()} })
 
             }
             else {
@@ -103,7 +110,7 @@ async function main () {
             return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid credentials' }});
         }
 
-        //res.render('main', {page: 'home', params: {}})
+        //res.render('main', {page: 'home', params: {csrfToken: req.csrfToken()}})
     })
     
     app.get('/watch', getLoggedUser, (req, res) => {
@@ -111,7 +118,7 @@ async function main () {
     })
 
     app.get('/upload', AuthMiddleware, (req, res) => {
-        res.render('main', {page: 'upload', params: {} })
+        res.render('main', {page: 'upload', params: { csrfToken: req.csrfToken() } })
     })
 
     app.post('/video', validateVideoInput, AuthMiddleware, (req, res) => {
@@ -155,7 +162,7 @@ async function main () {
 
             }).run()   
                
-            res.render('main', {page: 'home', params: {} })
+            res.render('main', {page: 'home', params: {csrfToken: req.csrfToken()} })
         })
 
     })

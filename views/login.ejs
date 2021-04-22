@@ -6,6 +6,7 @@
         <label to="password">Password:</label>
         <input type="password" name="password" required/>
         <br/>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
         <input type="submit" value="Login"/>
     </form>
 </div>
