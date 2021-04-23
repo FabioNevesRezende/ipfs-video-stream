@@ -182,16 +182,20 @@ const FileTag = database.define('filetag', {
     }
 })
 
-File.persist = async (originalFileName,fileCid,fileThumbId,size,mimetype) => {
+File.persist = async (originalFileName,fileCid,fileThumbId,size=undefined,mimetype=undefined) => {
     console.log('persistFile: ' + originalFileName)
   
+    try{
     const file1 = await File.create({
         originalFileName,
         fileCid,
         fileThumbId,
         size,
         mimetype
-    })
+    }) 
+  } catch (err){
+    console.log('File.persist error ' + err)
+  }
 };
 
 module.exports.Tag = Tag;
