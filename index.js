@@ -10,7 +10,7 @@ const fs = require('fs');
 const Path = require('path');
 const cookieParser = require('cookie-parser');
 const db = require('./persistence/db')
-const {User,File} = require('./persistence/models')
+const {User,File,FileTag} = require('./persistence/models')
 const AuthMiddleware = require('./middleware/auth')
 const validateVideoInput = require('./middleware/validateVideoInput')
 const validateSingUp = require('./middleware/validateSingup')
@@ -39,8 +39,9 @@ async function main () {
     app.use(express.static(__dirname + '/public'));
     app.use(csrfMiddleware);
     app.use(handleCsrfError)
-    app.get('/', getLoggedUser, (req, res) => {
-        res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), user: req.user}})
+    app.get('/', getLoggedUser, async (req, res) => {
+        const vids = await File.getVideos();
+        res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), user: req.user, vids }})
     })
 
     app.get('/singup', getLoggedUser, (req, res) => {
@@ -124,6 +125,7 @@ async function main () {
     app.post('/video', validateVideoInput, AuthMiddleware, (req, res) => {
         const file = req.files.file
         const fileName = req.body.fileName
+        const categories = req.body.categories
 
         file.mv(fileName, async (err) => {
             if(err){
@@ -151,11 +153,34 @@ async function main () {
                         }
 
                     }
-                    await generateUploadThumb(fileName, `/videos/${fileName}`)
+
+                    await ffmpeg(fileName).takeScreenshots({
+                        count: 1,
+                        timemarks: [ '5' ] 
+                    }, 'streamable').on('end', async (err) => {
+
+                        if(err) console.log('Error generating thumbnail from video')
+                        console.log('screenshots were saved')
+                        const filecontent = fs.readFileSync('streamable/tn.png')
+                        await ipfs.files.write(`/videos/${fileName}/thumb.png`, filecontent, { create: true })
+                      
+                        dirStat = await ipfs.files.stat(`/videos/${fileName}`)
+                        dirCid = dirStat.cid.toString()
+                        console.log(`dir cid: ${dirCid}`)
+                        fs.rmSync('streamable/tn.png')
+                        await File.persist(fileName, dirCid, undefined)
+
+                        for(const category of categories.split(',')){
+                            await FileTag.associate(category.trim(), dirCid)
+                        }
+
+                        return dirStat.cid.toString();
+                    })
+
                     rootStat = await ipfs.files.stat(`/`)
                     console.log(`root cid: ${rootStat.cid.toString()}`)
                     fs.rmSync(fileName)
-    
+
                 });
 
             }).run()   
@@ -164,26 +189,6 @@ async function main () {
         })
 
     })
-
-    const generateUploadThumb = async (fileName, path) => {
-        console.log('Creating file thumbnail')
-
-        await ffmpeg(fileName).takeScreenshots({
-            count: 1,
-            timemarks: [ '5' ] 
-        }, 'streamable').on('end', async (err) => {
-            if(err) console.log('Error generating thumbnail from video')
-            console.log('screenshots were saved')
-            const filecontent = fs.readFileSync('streamable/tn.png')
-            await ipfs.files.write(`${path}/thumb.png`, filecontent, { create: true })
-          
-            dirStat = await ipfs.files.stat(`${path}`)
-            console.log(`dir cid: ${dirStat.cid.toString()}`)
-            fs.rmSync('streamable/tn.png')
-            await File.persist(fileName, dirStat.cid.toString(), undefined)
-            return dirStat.cid.toString();
-        })
-    }
 
     const addFile = async (fileName, wrapWithDirectory=false) => {
         const file = fs.readFileSync(fileName)

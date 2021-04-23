@@ -5,6 +5,8 @@
     <label for="">File</label>
     <input type="file" name="file" required>
     <br><br>
+    <label for="">Categories</label>
+    <input type="text" name="categories" maxlength="1024" required>
     <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
     <input type="submit" value="Submit">
 </form>

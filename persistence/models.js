@@ -182,6 +182,17 @@ const FileTag = database.define('filetag', {
     }
 })
 
+FileTag.associate = async (tagName,fileCid) => {
+  try{
+    const a = await FileTag.create({
+      tagName,
+      fileCid
+    }) 
+  } catch (err){
+    console.log('FileTag.associate error ' + err)
+  }
+} 
+
 File.persist = async (originalFileName,fileCid,fileThumbId,size=undefined,mimetype=undefined) => {
     console.log('persistFile: ' + originalFileName)
   
@@ -196,6 +207,12 @@ File.persist = async (originalFileName,fileCid,fileThumbId,size=undefined,mimety
   } catch (err){
     console.log('File.persist error ' + err)
   }
+};
+
+File.getVideos = async() => {
+  const files = await File.findAll();
+
+  return files;
 };
 
 module.exports.Tag = Tag;
