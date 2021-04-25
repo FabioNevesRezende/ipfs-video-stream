@@ -24,8 +24,8 @@
     <ul>
     <%for(const vid of params.vids) { %> 
         <li>
-            <a href="/watch?filehash=<%= vid.fileCid %>&filename=<%= vid.originalFileName %>">
-                <img src="https://gateway.ipfs.io/ipfs/<%= vid.fileCid %>/thumb.png">
+            <a href="/watch?filehash=<%= vid.cid %>&filename=<%= vid.file.originalFileName %>">
+                <img src="https://gateway.ipfs.io/ipfs/<%= vid.file.cid %>/thumb.png">
             </a>
         </li>
     <% }  %>

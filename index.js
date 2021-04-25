@@ -10,7 +10,7 @@ const fs = require('fs');
 const Path = require('path');
 const cookieParser = require('cookie-parser');
 const db = require('./persistence/db')
-const {User,File,FileTag} = require('./persistence/models')
+const {User,File} = require('./persistence/models')
 const AuthMiddleware = require('./middleware/auth')
 const validateVideoInput = require('./middleware/validateVideoInput')
 const validateSingUp = require('./middleware/validateSingup')
@@ -40,7 +40,7 @@ async function main () {
     app.use(csrfMiddleware);
     app.use(handleCsrfError)
     app.get('/', getLoggedUser, async (req, res) => {
-        const vids = await File.getVideos();
+        const vids = await File.getVideosHomePage();
         res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), user: req.user, vids }})
     })
 
@@ -171,7 +171,7 @@ async function main () {
                         await File.persist(fileName, dirCid, undefined)
 
                         for(const category of categories.split(',')){
-                            await FileTag.associate(category.trim(), dirCid)
+                            await File.associate(category.trim(), dirCid)
                         }
 
                         return dirStat.cid.toString();

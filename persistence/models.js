@@ -62,9 +62,6 @@ User.authenticate = async function(username, password) {
 
     const user = await User.findOne({ where: { username } });
 
-    // bcrypt is a one-way hashing algorithm that allows us to 
-    // store strings on the database rather than the raw
-    // passwords. Check out the docs for more detail
     if (bcrypt.compareSync(password, user.password)) {
       return user.authorize();
     }
@@ -142,7 +139,7 @@ const File = database.define('file', {
         type: Sequelize.STRING,
         allowNull: false
     },
-    fileCid: {
+    cid: {
         type: Sequelize.STRING,
         allowNull: false,
         primaryKey: true
@@ -162,44 +159,39 @@ const File = database.define('file', {
 })
  
 const Tag = database.define('tag', {
-    name: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        primaryKey: true
-    }
-})
-
-const FileTag = database.define('filetag', {
     tagName: {
         type: Sequelize.STRING,
         allowNull: false,
         primaryKey: true
     },
-    fileCid: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        primaryKey: true
-    }
-})
+  },
+  {
+    timestamps: false
+  }
+)
 
-FileTag.associate = async (tagName,fileCid) => {
+Tag.belongsTo(File);
+
+File.hasMany(Tag);
+
+File.associate = async (tagName,cid) => {
   try{
-    const a = await FileTag.create({
+    const a = await Tag.create({
       tagName,
-      fileCid
+      fileCid: cid
     }) 
   } catch (err){
-    console.log('FileTag.associate error ' + err)
+    console.log('File.associate error ' + err)
   }
 } 
 
-File.persist = async (originalFileName,fileCid,fileThumbId,size=undefined,mimetype=undefined) => {
+File.persist = async (originalFileName,cid,fileThumbId,size=undefined,mimetype=undefined) => {
     console.log('persistFile: ' + originalFileName)
   
     try{
     const file1 = await File.create({
         originalFileName,
-        fileCid,
+        cid,
         fileThumbId,
         size,
         mimetype
@@ -209,14 +201,13 @@ File.persist = async (originalFileName,fileCid,fileThumbId,size=undefined,mimety
   }
 };
 
-File.getVideos = async() => {
-  const files = await File.findAll();
+File.getVideosHomePage = async() => {
+  const fileTags = await Tag.findAll({include: [{ model: File }]});
 
-  return files;
+  return fileTags;
 };
 
 module.exports.Tag = Tag;
 module.exports.File = File;
-module.exports.FileTag = FileTag;
 module.exports.AuthToken = AuthToken;
 module.exports.User = User;
