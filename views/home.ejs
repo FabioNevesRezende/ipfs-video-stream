@@ -6,7 +6,11 @@
         <%= 'visitante' %>
         <% }  %>
 </h4>
-        
+
+<%if(params.status) { %>   
+<p><%= params.status %></p>  
+<% }  %>
+
 <ul>
     <li><a href="/login">Login</a></li>
     <li><a href="/singup">Sing Up</a></li>

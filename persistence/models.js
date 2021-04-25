@@ -31,24 +31,108 @@ const User = database.define('user', {
       unique: true,
       allowNull: true,
     },
+    confirmed: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false,
+      allowNull: false
+    },
 });
 
-User.persist = (email,username,password,telegramId=null) => {
+const UserConfirmToken = database.define('userconfirmtoken', {
+  token: {
+      type: Sequelize.STRING(512),
+      allowNull: false,
+      unique: true,
+      primaryKey: true
+  }
+},
+{
+  updatedAt: false
+})
+
+UserConfirmToken.belongsTo(User);
+
+User.hasMany(UserConfirmToken);
+
+User.newConfirmToken = async function(email){
+  try{
+    const user = await User.findOne( { where: {email} } );
+    if(user){
+      console.log(`found user ${user}`)
+      const oldConfirmTokens = await UserConfirmToken.findAll({where: { userId: user.id }})
+      for(const t of oldConfirmTokens){
+        console.log(`Destroying old token ${t.token} for user ${user.id}`)
+        await t.destroy();
+      }
+
+      return makeUserConfirmToken(user);
+    }
+  } catch(err){
+    console.log('User.newConfirmToken error: ' + err)
+  }
+}
+
+makeUserConfirmToken = async function(user){
+  try{
+    const token = jwt.sign({ user }, user.username + user.password);
+        
+    const confirmToken = await UserConfirmToken.create({
+      token, userId: user.id
+    })
+
+    user.confirmToken = confirmToken;
+    return user;
+    
+  } catch(err){
+    console.log('makeUserConfirmToken error: ' + err)
+  }
+}
+
+User.createNew = async (email,username,password,telegramId=null) => {
     console.log('persistUser: ' + username)
 
-    const hash = bcrypt.hashSync(password, saltRounds);
+    try{
+      const hash = bcrypt.hashSync(password, saltRounds);
 
-    const user1 = User.create({
-        email,
-        telegramId,
-        username,
-        password: hash
-    })
-    
-    return user1;
+      const user = await User.create({
+          email,
+          telegramId,
+          username,
+          password: hash
+      })
+
+      return makeUserConfirmToken(user);
+
+  } catch (err){
+    console.log('User.createNew error ' + err)
+  }
 
 };
 
+User.validateSingup = async (token) => {
+  const dbToken = await UserConfirmToken.findOne( {where: { token }, include: [{ model: User }]} )
+
+  if(dbToken && dbToken.user){
+    cAt = new Date(dbToken.createdAt)
+    limit = new Date(cAt.getTime() + 1000 * 60 * 60) // 1 hour
+    if( (new Date()).getTime() > limit.getTime()){
+      dbToken.destroy()
+      return false;
+    }
+    var decoded = jwt.verify(token, dbToken.user.username + dbToken.user.password)
+
+    if(decoded && decoded.user){
+
+      dbToken.user.confirmed = true
+      await dbToken.user.save()
+
+      dbToken.destroy()
+
+      return true
+    }
+  }
+  return false
+}
 
 
 User.prototype.verifyToken = function(token){
@@ -75,21 +159,12 @@ const AuthToken = database.define('authtoken', {
         allowNull: false,
         unique: true,
         primaryKey: true
-      },
-      userId: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        primaryKey: true
       }
 });
 
-AuthToken.associate = function({ User }) {
-    AuthToken.belongsTo(User, {foreignKey: 'userId'});
-};
+AuthToken.belongsTo(User);
 
-User.associate = function ({ AuthToken }) {
-    User.hasMany(AuthToken);
-};
+User.hasMany(AuthToken);
 
 AuthToken.generate = function(user){
   var token = jwt.sign({ user }, user.password);

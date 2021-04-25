@@ -18,6 +18,8 @@ const validateLogin = require('./middleware/validateLogin')
 const getLoggedUser = require('./middleware/getLoggedUser')
 const csurf = require('csurf');
 const handleCsrfError = require('./middleware/handleCsrfError');
+const nodeMailer = require('nodemailer');
+const validateNewSingupToken = require('./middleware/validateNewSingupToken')
 
 async function main () {
     const repoPath = '.ipfs-node'  + Math.random() 
@@ -70,6 +72,9 @@ async function main () {
             let user = await User.authenticate(username, password)
             if(user){
                 console.log('returned user: ' + JSON.stringify(user))
+                if(!user.confirmed)
+                    res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), status: 'User email not confirmed'}})
+
                 res.cookie('authToken', user.authToken, { maxAge: 8320000, httpOnly: true });
 
                 res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), user}})
@@ -97,9 +102,10 @@ async function main () {
     app.post('/singup', validateSingUp, async (req, res) => {
 
         try {
-            let user = User.persist(req.body.email, req.body.username, req.body.password)
+            let user = await User.createNew(req.body.email, req.body.username, req.body.password)
             if(user){
                 res.render('main', {page: 'home', params: {csrfToken: req.csrfToken()} })
+                sendConfirmEmail(user)
 
             }
             else {
@@ -116,6 +122,39 @@ async function main () {
     
     app.get('/watch', getLoggedUser, (req, res) => {
         res.render('main', {page: 'watch', params: { fileHash: req.query.filehash, fileName: req.query.filename }})
+    })
+
+    app.get('/validateSingupToken', async (req, res) => {
+        if(req.query.token){
+            if(await User.validateSingup(req.query.token))
+                res.render('main', {page: 'home', params: { status: 'Token validated!', csrfToken: req.csrfToken() }})
+            else
+                res.render('main', {page: 'home', params: { status: 'Token NOT validated!', csrfToken: req.csrfToken() }})
+        }
+        else{
+            res.redirect('/')
+        }
+    })
+
+    app.get('/newSingupToken', async (req, res) => {
+        res.render('main', {page: 'newToken', params: { csrfToken: req.csrfToken() } })
+    })
+
+    app.post('/newSingupToken', validateNewSingupToken, async (req, res) => {
+        if(req.body.email){
+            const user = await User.newConfirmToken(req.body.email)
+            if(user && user.confirmToken){
+                res.render('main', {page: 'home', params: { status: 'new token created!', csrfToken: req.csrfToken() }})
+                sendConfirmEmail(user)
+
+
+            }
+            else res.render('main', {page: 'home', params: { status: 'Error creating new token!', csrfToken: req.csrfToken() }})
+
+        }
+        else{
+            res.redirect('/')
+        }
     })
 
     app.get('/upload', AuthMiddleware, (req, res) => {
@@ -195,6 +234,33 @@ async function main () {
         const fileAdded = await ipfs.add({path: fileName, content: file}, { wrapWithDirectory })
         console.log('added file cid ' + fileAdded.cid.toString())
         return fileAdded.cid.toString();
+    }
+
+    const sendConfirmEmail = (user) => {
+        console.log(`Sending confirmation email to ${user.email}`)
+        let transporter = nodeMailer.createTransport({
+            service: 'gmail',
+            auth: {
+              user: '',
+              pass: ''
+            }
+        });
+          
+        let mailOptions = {
+          from: '',
+          to: user.email,
+          subject: 'Confirm register',
+          html: `<p><a href="http://127.0.0.1:3000/validateSingupToken?token=${user.confirmToken.token}">Click here</a> to confirm your registration</p>`
+        };
+        
+        transporter.sendMail(mailOptions, function(error, info){
+          if (error) {
+            console.log(error);
+          } else {
+            console.log('Email sent: ' + info.response);
+          }
+        });
+
     }
 
     db.sync().then(() => {

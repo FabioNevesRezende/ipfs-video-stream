@@ -24,6 +24,7 @@
     "it-to-buffer": "^2.0.0",
     "jsonwebtoken": "^8.5.1",
     "mysql2": "^2.2.5",
+    "nodemailer": "^6.5.0",
     "sequelize": "^6.6.2"
   },
   "devDependencies": {
