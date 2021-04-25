@@ -20,6 +20,7 @@ const csurf = require('csurf');
 const handleCsrfError = require('./middleware/handleCsrfError');
 const nodeMailer = require('nodemailer');
 const validateNewSingupToken = require('./middleware/validateNewSingupToken')
+require('dotenv').config()
 
 async function main () {
     const repoPath = '.ipfs-node'  + Math.random() 
@@ -241,13 +242,13 @@ async function main () {
         let transporter = nodeMailer.createTransport({
             service: 'gmail',
             auth: {
-              user: '',
-              pass: ''
+              user: process.env.FROM_EMAIL,
+              pass: process.env.FROM_EMAIL_PASSWORD
             }
         });
           
         let mailOptions = {
-          from: '',
+          from: process.env.FROM_EMAIL,
           to: user.email,
           subject: 'Confirm register',
           html: `<p><a href="http://127.0.0.1:3000/validateSingupToken?token=${user.confirmToken.token}">Click here</a> to confirm your registration</p>`
