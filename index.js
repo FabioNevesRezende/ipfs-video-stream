@@ -22,6 +22,7 @@ const handleCsrfError = require('./middleware/handleCsrfError');
 const validateNewSingupToken = require('./middleware/validateNewSingupToken')
 const validateForgotPassword = require('./middleware/validateForgotPassword') 
 const validateResetPassword  = require('./middleware/validateResetPassword') 
+const validateChangePassword  = require('./middleware/validateChangePassword') 
 
 async function main () {
     const repoPath = '.ipfs-node'  + Math.random() 
@@ -67,6 +68,21 @@ async function main () {
             return goHome(req, res, {user: req.user})
         }
         res.render('main', {page: 'singup', params: {csrfToken: req.csrfToken()}})
+    })
+
+    app.get('/profile', AuthMiddleware, (req, res) => {
+        if(!req.user){
+            return goHome(req, res, {})
+        }
+
+        res.render('main', {page: 'profile', params: { csrfToken: req.csrfToken(), user: req.user }})
+    })
+    
+    app.post('/changePassword', AuthMiddleware, validateChangePassword, async (req, res) => {
+        const changed = await req.user.changePassword(req.body.password, req.body.newPassword)
+        if(changed) 
+            res.render('main', {page: 'profile', params: { csrfToken: req.csrfToken(), user: req.user }})
+        else return goHome(req, res, {status: 'Error changing user password'})
     })
 
     app.get('/login', getLoggedUser, (req, res) => {

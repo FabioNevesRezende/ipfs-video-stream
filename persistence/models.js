@@ -217,6 +217,21 @@ User.authenticate = async function(username, password) {
     throw new Error('invalid password');
 }
 
+User.prototype.changePassword = async function(oldPassword, newPassword){
+  try{
+    if (bcrypt.compareSync(oldPassword, this.password)) {
+      const hash = bcrypt.hashSync(newPassword, saltRounds)
+      this.password = hash
+  
+      await this.save()
+      return true;
+    }
+  } catch(err){
+    console.log('User.prototype.changePassword error: ' + err)
+    return false;
+  }
+}
+
 const AuthToken = database.define('authtoken', {
     token: {
         type: Sequelize.STRING(512),
