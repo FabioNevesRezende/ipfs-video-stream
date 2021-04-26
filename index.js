@@ -1,14 +1,16 @@
 const IPFS = require('ipfs');
 const express = require('express');
 const fileUpload = require('express-fileupload')
-//const toBuffer = require('it-to-buffer')
-//const all = require('it-all')
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 const fs = require('fs');
 const Path = require('path');
 const cookieParser = require('cookie-parser');
+const csurf = require('csurf');
+const nodeMailer = require('nodemailer');
+require('dotenv').config()
+
 const db = require('./persistence/db')
 const {User,File} = require('./persistence/models')
 const AuthMiddleware = require('./middleware/auth')
@@ -16,16 +18,23 @@ const validateVideoInput = require('./middleware/validateVideoInput')
 const validateSingUp = require('./middleware/validateSingup')
 const validateLogin = require('./middleware/validateLogin')
 const getLoggedUser = require('./middleware/getLoggedUser')
-const csurf = require('csurf');
 const handleCsrfError = require('./middleware/handleCsrfError');
-const nodeMailer = require('nodemailer');
 const validateNewSingupToken = require('./middleware/validateNewSingupToken')
-require('dotenv').config()
+const validateForgotPassword = require('./middleware/validateForgotPassword') 
+const validateResetPassword  = require('./middleware/validateResetPassword') 
 
 async function main () {
     const repoPath = '.ipfs-node'  + Math.random() 
     const ipfs = await IPFS.create({silent: true, repo: repoPath })
     const app = express()
+
+    const transporter = nodeMailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.FROM_EMAIL,
+          pass: process.env.FROM_EMAIL_PASSWORD
+        }
+    });
 
     const csrfMiddleware = csurf({
         cookie: true
@@ -230,6 +239,29 @@ async function main () {
 
     })
 
+    app.get('/forgotPassword', (req,res) => {
+        if(req.query.token){
+            res.render('main', {page: 'forgotPassword', params: {csrfToken: req.csrfToken(), token: req.query.token} })
+        } else {
+            res.render('main', {page: 'forgotPassword', params: {csrfToken: req.csrfToken()} })
+        }
+    })
+
+    app.post('/requestResetPassword', validateResetPassword, async (req,res) => {
+        const user = await User.resetPasswordToken(req.body.email) 
+        sendEmailResetPassword(user)
+        res.render('main', {page: 'home', params: {csrfToken: req.csrfToken()} })
+    })
+
+    app.post('/resetPassword', validateForgotPassword, async (req,res) => {
+        const user = await User.resetPassword(req.body.password, req.body.passwordResetToken)
+        if(user){
+            res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), user} })
+        } else {
+            res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), status: 'Error reseting password'} })
+        }
+    })
+
     const addFile = async (fileName, wrapWithDirectory=false) => {
         const file = fs.readFileSync(fileName)
         const fileAdded = await ipfs.add({path: fileName, content: file}, { wrapWithDirectory })
@@ -237,17 +269,29 @@ async function main () {
         return fileAdded.cid.toString();
     }
 
+    const sendEmailResetPassword = (user) => {
+        console.log(`Sending confirmation email to ${user.email}`)
+          
+        const mailOptions = {
+          from: process.env.FROM_EMAIL,
+          to: user.email,
+          subject: 'Reset password',
+          html: `<p><a href="http://127.0.0.1:3000/forgotPassword?token=${user.resetToken.token}">Click here</a> to reset your password</p>`
+        };
+        
+        transporter.sendMail(mailOptions, function(error, info){
+          if (error) {
+            console.log(error);
+          } else {
+            console.log('Email sent: ' + info.response);
+          }
+        });
+    }
+
     const sendConfirmEmail = (user) => {
         console.log(`Sending confirmation email to ${user.email}`)
-        let transporter = nodeMailer.createTransport({
-            service: 'gmail',
-            auth: {
-              user: process.env.FROM_EMAIL,
-              pass: process.env.FROM_EMAIL_PASSWORD
-            }
-        });
           
-        let mailOptions = {
+        const mailOptions = {
           from: process.env.FROM_EMAIL,
           to: user.email,
           subject: 'Confirm register',

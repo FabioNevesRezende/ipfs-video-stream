@@ -88,6 +88,71 @@ makeUserConfirmToken = async function(user){
   }
 }
 
+const UserResetPasswordToken = database.define('userresetpasswordtoken', {
+  token: {
+      type: Sequelize.STRING(512),
+      allowNull: false,
+      unique: true,
+      primaryKey: true
+  }
+},
+{
+  updatedAt: false
+})
+
+UserResetPasswordToken.belongsTo(User);
+
+User.hasMany(UserResetPasswordToken);
+
+User.resetPasswordToken = async (email) => {
+  try{
+    const user = await User.findOne( { where: {email} } );
+    if(user){
+      const token = jwt.sign({ user }, process.env.JWT_SECRET );
+
+      const resetToken = await UserResetPasswordToken.create({
+        token, userId: user.id
+      })
+
+      user.resetToken = resetToken
+
+      return user;
+
+    }
+  }catch(err){
+    console.log('User.resetPasswordToken error: ' + err)
+  }
+}
+
+User.resetPassword = async (password, token) => {
+  const dbToken = await UserResetPasswordToken.findOne( {where: { token }, include: [{ model: User }]} )
+
+  if(dbToken && dbToken.user){
+    cAt = new Date(dbToken.createdAt)
+    limit = new Date(cAt.getTime() + 1000 * 60 * 60) // 1 hour
+    if( (new Date()).getTime() > limit.getTime()){
+      dbToken.destroy()
+      return false
+    }
+    var decoded = jwt.verify(token, process.env.JWT_SECRET)
+
+    if(decoded && decoded.user){
+
+      const hash = bcrypt.hashSync(password, saltRounds)
+      dbToken.user.password = hash
+      const user = dbToken.user
+
+      await user.save()
+
+      dbToken.destroy()
+
+      return user
+    }
+  }
+  return false
+
+}
+
 User.createNew = async (email,username,password,telegramId=null) => {
     console.log('persistUser: ' + username)
 
@@ -137,9 +202,8 @@ User.validateSingup = async (token) => {
 
 User.prototype.verifyToken = function(token){
   var decoded = jwt.verify(token, this.password)
-  if(decoded && decoded.user){
-    return {...decoded.user, authToken: token }
-  }
+  return decoded && decoded.user
+  
 }
 
 User.authenticate = async function(username, password) {
@@ -166,9 +230,9 @@ AuthToken.belongsTo(User);
 
 User.hasMany(AuthToken);
 
-AuthToken.generate = function(user){
+AuthToken.generate = async function(user){
   var token = jwt.sign({ user }, user.password);
-  return AuthToken.create({ token, userId: user.id })
+  return await AuthToken.create({ token, userId: user.id })
 }
 
 AuthToken.validate = async function(token){
@@ -179,7 +243,10 @@ AuthToken.validate = async function(token){
       );
       if(authToken){
         const user = await User.findOne({where: { id: authToken.userId }}) // 2 query, mt ruim
-        return user.verifyToken(token);
+        if(user.verifyToken(token)){
+          user.authToken = token
+        }
+        return user
       }
     }
   } catch(err){
@@ -197,8 +264,8 @@ User.prototype.authorize = async function (token=undefined) {
   }
   if(at!==null){
     at.userId = user.id;
-
-    return {...user, authToken: at.token }
+    user.authToken = at.token;
+    return  user
   }
 };
 
