@@ -51,21 +51,27 @@ async function main () {
     app.use(express.static(__dirname + '/public'));
     app.use(csrfMiddleware);
     app.use(handleCsrfError)
-    app.get('/', getLoggedUser, async (req, res) => {
+
+    const goHome = async (req, res, args) => {
         const vids = await File.getVideosHomePage();
-        res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), user: req.user, vids }})
+        return res.render('main', {page: 'home', params: {...args, csrfToken: req.csrfToken(), vids }})
+
+    } 
+
+    app.get('/', getLoggedUser, async (req, res) => {
+        return goHome(req, res, {user: req.user})
     })
 
     app.get('/singup', getLoggedUser, (req, res) => {
         if(req.user){
-            res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), user: req.user}})
+            return goHome(req, res, {user: req.user})
         }
         res.render('main', {page: 'singup', params: {csrfToken: req.csrfToken()}})
     })
 
     app.get('/login', getLoggedUser, (req, res) => {
         if(req.user){
-            res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), user: req.user}})
+            return goHome(req, res, {user: req.user})
         }
         res.render('main', {page: 'login', params: {csrfToken: req.csrfToken()}})
     })
@@ -83,11 +89,11 @@ async function main () {
             if(user){
                 console.log('returned user: ' + JSON.stringify(user))
                 if(!user.confirmed)
-                    res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), status: 'User email not confirmed'}})
+                    return goHome(req, res, {status: 'User email not confirmed'})
 
                 res.cookie('authToken', user.authToken, { maxAge: 8320000, httpOnly: true });
 
-                res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), user}})
+                return goHome(req, res, {user})
             } else console.log('Usuário não autenticado')
 
         } catch (err) {
@@ -103,7 +109,7 @@ async function main () {
       
         if (user && authToken) {
             await User.logout(authToken);
-            return res.render('main', { page: 'home', params: {csrfToken: req.csrfToken()}})
+            return goHome(req, res, {})
         }
 
         return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid request' }});
@@ -114,8 +120,8 @@ async function main () {
         try {
             let user = await User.createNew(req.body.email, req.body.username, req.body.password)
             if(user){
-                res.render('main', {page: 'home', params: {csrfToken: req.csrfToken()} })
                 sendConfirmEmail(user)
+                return goHome(req, res, {})
 
             }
             else {
@@ -127,7 +133,6 @@ async function main () {
             return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid credentials' }});
         }
 
-        //res.render('main', {page: 'home', params: {csrfToken: req.csrfToken()}})
     })
     
     app.get('/watch', getLoggedUser, (req, res) => {
@@ -137,9 +142,9 @@ async function main () {
     app.get('/validateSingupToken', async (req, res) => {
         if(req.query.token){
             if(await User.validateSingup(req.query.token))
-                res.render('main', {page: 'home', params: { status: 'Token validated!', csrfToken: req.csrfToken() }})
+                return goHome(req, res, {status: 'Token validated!'})
             else
-                res.render('main', {page: 'home', params: { status: 'Token NOT validated!', csrfToken: req.csrfToken() }})
+                return goHome(req, res, {status: 'Token NOT validated!'})
         }
         else{
             res.redirect('/')
@@ -154,12 +159,10 @@ async function main () {
         if(req.body.email){
             const user = await User.newConfirmToken(req.body.email)
             if(user && user.confirmToken){
-                res.render('main', {page: 'home', params: { status: 'new token created!', csrfToken: req.csrfToken() }})
                 sendConfirmEmail(user)
-
-
+                return goHome(req, res, {status: 'New confirmation email sent'})
             }
-            else res.render('main', {page: 'home', params: { status: 'Error creating new token!', csrfToken: req.csrfToken() }})
+            else return goHome(req, res, {status: 'Error sending new confirmation email'})
 
         }
         else{
@@ -234,7 +237,7 @@ async function main () {
 
             }).run()   
                
-            res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), user: req.user} })
+            return goHome(req, res, {status: `Uploading video ${fileName} to streamable format`, user: req.user })
         })
 
     })
@@ -250,15 +253,15 @@ async function main () {
     app.post('/requestResetPassword', validateResetPassword, async (req,res) => {
         const user = await User.resetPasswordToken(req.body.email) 
         sendEmailResetPassword(user)
-        res.render('main', {page: 'home', params: {csrfToken: req.csrfToken()} })
+        return goHome(req, res, {})
     })
 
     app.post('/resetPassword', validateForgotPassword, async (req,res) => {
         const user = await User.resetPassword(req.body.password, req.body.passwordResetToken)
         if(user){
-            res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), user} })
+            return goHome(req, res, {user})
         } else {
-            res.render('main', {page: 'home', params: {csrfToken: req.csrfToken(), status: 'Error reseting password'} })
+            return goHome(req, res, {status: 'Error reseting password'})
         }
     })
 
