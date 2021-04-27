@@ -11,7 +11,7 @@
     const fileHash = '<%= params.fileHash %>'
     const fileName = '<%= params.fileName %>'
     console.log('hash file: ' + fileHash)
-    const repoPath = 'ipfs-' + Math.random()
+    const repoPath = 'ipfs-local-node'
     const node = await Ipfs.create( { repo: repoPath } )
     Hls.DefaultConfig.loader = HlsjsIpfsLoader
     Hls.DefaultConfig.debug = false

@@ -2,6 +2,7 @@
 <%if(params.user) { %>   
     <p>Username <%= params.user.username %></p>  
     <p>Email: <%= params.user.email %></p>
+    <img src="https://gateway.ipfs.io/ipfs/<%= params.user.profilePhotoCid %>" alt="profile-photo">
 
     <form method="POST" action="/changePassword">
         <br/>
@@ -14,8 +15,17 @@
         <label to="newPasswordConfirm">New Confirm password:</label>
         <input type="password" name="newPasswordConfirm" required/>
 
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />        
         <input type="submit" value="Change password">
     </form>
+    <hr><br>
+    <form method="POST" action="/changeProfilePhoto" enctype="multipart/form-data">
+        <label for="image">Profile photo:</label>
+        <input type="file" name="image" required>
+
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />        
+        <input type="submit" value="Change profile photo">
+    </form>
+
 <% }  %>
     

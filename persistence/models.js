@@ -36,7 +36,22 @@ const User = database.define('user', {
       defaultValue: false,
       allowNull: false
     },
+    profilePhotoCid: {
+        type: Sequelize.STRING,
+        allowNull: true
+    },
 });
+
+User.updateProfilePhoto = async (user, cid) => {
+  try{
+    user.profilePhotoCid = cid
+    await user.save()
+
+    return user;
+  }catch(err){
+    console.log('User.prototype.updateProfilePhoto error: ' + err)
+  }
+}
 
 const UserConfirmToken = database.define('userconfirmtoken', {
   token: {
@@ -202,7 +217,7 @@ User.validateSingup = async (token) => {
 
 User.prototype.verifyToken = function(token){
   var decoded = jwt.verify(token, this.password)
-  return decoded && decoded.user
+  return decoded && decoded.user && decoded.user.extra
   
 }
 
@@ -246,7 +261,7 @@ AuthToken.belongsTo(User);
 User.hasMany(AuthToken);
 
 AuthToken.generate = async function(user){
-  var token = jwt.sign({ user }, user.password);
+  var token = jwt.sign({ user: { id: user.id, username: user.username, extra: (Math.random()*17) } }, user.password);
   return await AuthToken.create({ token, userId: user.id })
 }
 
@@ -330,6 +345,10 @@ const Tag = database.define('tag', {
 Tag.belongsTo(File);
 
 File.hasMany(Tag);
+
+File.belongsTo(User);
+
+User.hasMany(File);
 
 File.associate = async (tagName,cid) => {
   try{

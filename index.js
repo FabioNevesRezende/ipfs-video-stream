@@ -23,9 +23,10 @@ const validateNewSingupToken = require('./middleware/validateNewSingupToken')
 const validateForgotPassword = require('./middleware/validateForgotPassword') 
 const validateResetPassword  = require('./middleware/validateResetPassword') 
 const validateChangePassword  = require('./middleware/validateChangePassword') 
+const validateUpdateImage = require('./middleware/validateUpdateImage')
 
 async function main () {
-    const repoPath = '.ipfs-node'  + Math.random() 
+    const repoPath = '.ipfs-node-main'
     const ipfs = await IPFS.create({silent: true, repo: repoPath })
     const app = express()
 
@@ -279,6 +280,26 @@ async function main () {
         } else {
             return goHome(req, res, {status: 'Error reseting password'})
         }
+    })
+
+    app.post('/changeProfilePhoto', AuthMiddleware, /* validateUpdateImage, */ async (req,res) => {
+
+        const image = req.files.image
+        await image.mv('imagefile', async (err) => {
+            if(err){
+                console.log('Error: failed to download the file')
+                return res.status(500).send(err)
+            }
+
+            imgCid = await addFile('imagefile')
+            req.user = await User.updateProfilePhoto(req.user, imgCid) 
+
+            fs.rmSync('imagefile')
+            return res.render('main', {page: 'profile', params: { csrfToken: req.csrfToken(), user: req.user }})
+
+        })
+
+
     })
 
     const addFile = async (fileName, wrapWithDirectory=false) => {

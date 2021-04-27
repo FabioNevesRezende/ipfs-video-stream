@@ -7,6 +7,12 @@ manutenção
     triggers para deletar tokens invalidos, usuarios inativos, etc
     revisar consultas desnecessárias bd
 
+segurança
+    tokens, vazamentos, sql injection (sequelize)
+
+otimizacoes
+    subir img em nodo no browser e postar apenas o cid ao servidor
+
 videos
     watch random video [por categoria]
     comentarios
