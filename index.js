@@ -305,8 +305,15 @@ async function main () {
     const addFile = async (fileName, wrapWithDirectory=false) => {
         const file = fs.readFileSync(fileName)
         const fileAdded = await ipfs.add({path: fileName, content: file}, { wrapWithDirectory })
-        console.log('added file cid ' + fileAdded.cid.toString())
-        return fileAdded.cid.toString();
+        fileCid = fileAdded.cid.toString()
+        console.log('added file cid ' + fileCid)
+        pinFile(fileCid)
+        return fileCid;
+    }
+
+    const pinFile = async (fileHash) => {
+        await ipfs.pin.add(fileHash)
+
     }
 
     const sendEmailResetPassword = (user) => {
