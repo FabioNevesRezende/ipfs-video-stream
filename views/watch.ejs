@@ -23,3 +23,22 @@
     }
     })
 </script>
+
+<form method="POST" action="/comment">
+    <textarea name="commentText" maxlength="512"></textarea>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+    <input type="hidden" name="cid" value="<%= params.fileHash %>" />
+    <input type="submit" value="Comment">
+</form>
+
+
+<%if(params.comments) { %>  
+    <ul>
+    <%for(const comment of params.comments) { %> 
+        <li>
+            <%= comment.text %>
+            By <%= comment.user.username %>
+        </li>
+    <% }  %>
+    </ul>
+<% }  %>

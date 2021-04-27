@@ -12,7 +12,7 @@ const nodeMailer = require('nodemailer');
 require('dotenv').config()
 
 const db = require('./persistence/db')
-const {User,File} = require('./persistence/models')
+const {User,File,Comment} = require('./persistence/models')
 const AuthMiddleware = require('./middleware/auth')
 const validateVideoInput = require('./middleware/validateVideoInput')
 const validateSingUp = require('./middleware/validateSingup')
@@ -24,6 +24,7 @@ const validateForgotPassword = require('./middleware/validateForgotPassword')
 const validateResetPassword  = require('./middleware/validateResetPassword') 
 const validateChangePassword  = require('./middleware/validateChangePassword') 
 const validateUpdateImage = require('./middleware/validateUpdateImage')
+const validateFileComment = require('./middleware/validateFileComment')
 
 async function main () {
     const repoPath = '.ipfs-node-main'
@@ -152,8 +153,14 @@ async function main () {
 
     })
     
-    app.get('/watch', getLoggedUser, (req, res) => {
-        res.render('main', {page: 'watch', params: { fileHash: req.query.filehash, fileName: req.query.filename }})
+    app.get('/watch', getLoggedUser, async (req, res) => {
+        const c = await Comment.ofFile(req.query.filehash)
+        res.render('main', {page: 'watch', params: { 
+            comments: c,
+            fileHash: req.query.filehash,
+            fileName: req.query.filename,
+            csrfToken: req.csrfToken()
+         }})
     })
 
     app.get('/validateSingupToken', async (req, res) => {
@@ -282,7 +289,7 @@ async function main () {
         }
     })
 
-    app.post('/changeProfilePhoto', AuthMiddleware, /* validateUpdateImage, */ async (req,res) => {
+    app.post('/changeProfilePhoto', AuthMiddleware, validateUpdateImage, async (req,res) => {
 
         const image = req.files.image
         await image.mv('imagefile', async (err) => {
@@ -300,6 +307,22 @@ async function main () {
         })
 
 
+    })
+
+    app.post('/comment', AuthMiddleware, validateFileComment, async (req, res) => {
+        try {
+            let comment = await Comment.createNew(req.body.commentText, req.user.id, req.body.cid)
+            if(comment){
+                res.redirect(req.header('Referer') || '/')
+            }
+            else {
+                throw new Error('Invalid comment')
+            }
+            
+        } catch(err) {
+            console.log(err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Error creating new comment' }});
+        }
     })
 
     const addFile = async (fileName, wrapWithDirectory=false) => {

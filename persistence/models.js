@@ -342,6 +342,79 @@ const Tag = database.define('tag', {
   }
 )
 
+const FileReaction = database.define('filereaction', {
+    reaction: {
+        type: Sequelize.STRING /* + ' CHARSET utf8mb4  COLLATE utf8mb4_bin'*/,
+        allowNull: false,
+        primaryKey: true
+    },
+    qtd: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 1
+    }
+  },
+  {
+    timestamps: false
+  }
+)
+
+const Comment = database.define('comment', {
+  id: {
+    type: Sequelize.INTEGER,
+    autoIncrement: true,
+    allowNull: false,
+    primaryKey: true
+  },
+  text: {
+      type: Sequelize.STRING(512)  /* + ' CHARSET utf8mb4  COLLATE utf8mb4_bin' */,
+      allowNull: false
+  }
+},
+{
+  timestamps: false
+}
+)
+
+Comment.belongsTo(File);
+
+File.hasMany(Comment);
+
+Comment.belongsTo(User);
+
+User.hasMany(Comment);
+
+FileReaction.belongsTo(File);
+
+File.hasMany(FileReaction);
+
+Comment.createNew = async (text, userId, fileCid) => {
+  console.log('Comment.createNew: ' + text)
+  try{
+
+    const c = await Comment.create({text, userId, fileCid})
+
+    return c;
+
+  } catch (err){
+    console.log('Comment.createNew error ' + err)
+  }
+
+};
+
+Comment.ofFile = async(fileCid) => {
+  console.log('Comment.ofFile: ' + fileCid)
+  try{
+
+    const cs = await Comment.findAll({ where: {fileCid}, include: [{ model: User }] })
+
+    return cs;
+
+  } catch (err){
+    console.log('Comment.ofFile error ' + err)
+  }
+}
+
 Tag.belongsTo(File);
 
 File.hasMany(Tag);
@@ -386,4 +459,5 @@ File.getVideosHomePage = async() => {
 module.exports.Tag = Tag;
 module.exports.File = File;
 module.exports.AuthToken = AuthToken;
+module.exports.Comment = Comment;
 module.exports.User = User;

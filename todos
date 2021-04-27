@@ -1,14 +1,18 @@
 
 profile
-    profile photo
+    profile photo (x)
     control user uploads 
 
 manutenção
     triggers para deletar tokens invalidos, usuarios inativos, etc
     revisar consultas desnecessárias bd
 
+otimização
+    trazer apenas campos a serem usados nas queries
+
 segurança
     tokens, vazamentos, sql injection (sequelize)
+    hashear tokens
 
 videos
     watch random video [por categoria]
