@@ -243,6 +243,7 @@ async function main () {
                         dirStat = await ipfs.files.stat(`/videos/${fileName}`)
                         dirCid = dirStat.cid.toString()
                         console.log(`dir cid: ${dirCid}`)
+                        pinFile(dirCid)
                         fs.rmSync('streamable/tn.png')
                         await File.persist(fileName, dirCid, undefined)
 
@@ -335,6 +336,7 @@ async function main () {
     }
 
     const pinFile = async (fileHash) => {
+        console.log('pinFile cid: ' + fileHash)
         await ipfs.pin.add(fileHash)
 
     }
