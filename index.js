@@ -72,12 +72,12 @@ async function main () {
         res.render('main', {page: 'singup', params: {csrfToken: req.csrfToken()}})
     })
 
-    app.get('/profile', AuthMiddleware, (req, res) => {
+    app.get('/profile', AuthMiddleware, async (req, res) => {
         if(!req.user){
             return goHome(req, res, {})
         }
-
-        res.render('main', {page: 'profile', params: { csrfToken: req.csrfToken(), user: req.user }})
+        const user = await User.withFiles(req.user.id)
+        res.render('main', {page: 'profile', params: { csrfToken: req.csrfToken(), user }})
     })
     
     app.post('/changePassword', AuthMiddleware, validateChangePassword, async (req, res) => {
@@ -245,8 +245,7 @@ async function main () {
                         console.log(`dir cid: ${dirCid}`)
                         pinFile(dirCid)
                         fs.rmSync('streamable/tn.png')
-                        await File.persist(fileName, dirCid, undefined)
-
+                        await File.persist(fileName, dirCid, req.user.id)
                         for(const category of categories.split(',')){
                             await File.associate(category.trim(), dirCid)
                         }

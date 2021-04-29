@@ -29,3 +29,14 @@
 
 <% }  %>
     
+<%if(params.user.files) { %>
+    <ul>
+        <%for(const f of params.user.files) { %> 
+            <li>
+                <%= f.originalFileName %>
+                with cid: <%= f.cid %>
+            </li>
+        <% }  %>
+        </ul>
+<% }  %>
+        

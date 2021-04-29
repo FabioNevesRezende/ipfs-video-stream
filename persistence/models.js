@@ -40,6 +40,10 @@ const User = database.define('user', {
         type: Sequelize.STRING,
         allowNull: true
     },
+    lastLogin: {
+      type: Sequelize.DATE,
+      allowNull: true
+    }
 });
 
 User.updateProfilePhoto = async (user, cid) => {
@@ -316,10 +320,6 @@ const File = database.define('file', {
         allowNull: false,
         primaryKey: true
     },
-    fileThumbId: {
-        type: Sequelize.STRING,
-        allowNull: true
-    },
     size: {
         type: Sequelize.INTEGER,
         allowNull: true
@@ -434,14 +434,14 @@ File.associate = async (tagName,cid) => {
   }
 } 
 
-File.persist = async (originalFileName,cid,fileThumbId,size=undefined,mimetype=undefined) => {
+File.persist = async (originalFileName,cid,userId,size=undefined,mimetype=undefined) => {
     console.log('persistFile: ' + originalFileName)
   
     try{
     const file1 = await File.create({
         originalFileName,
         cid,
-        fileThumbId,
+        userId,
         size,
         mimetype
     }) 
@@ -455,6 +455,17 @@ File.getVideosHomePage = async() => {
 
   return fileTags;
 };
+
+User.withFiles = async (userId) => {
+  try{
+    const user = await User.findAll({ where: {id: userId}, include: [{model: File}] })
+    if(user && user[0])
+    return user[0]
+
+  }catch(err){
+    console.log('File.ofUser error: ' + err)
+  }
+}
 
 module.exports.Tag = Tag;
 module.exports.File = File;

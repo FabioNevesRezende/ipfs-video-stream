@@ -1,7 +1,10 @@
 
-profile
+profile/user
     profile photo (x)
-    control user uploads 
+    control user uploads (x)
+    remunerção
+    last login (x)
+    canais
 
 manutenção
     triggers para deletar tokens invalidos, usuarios inativos, etc
@@ -9,10 +12,12 @@ manutenção
 
 otimização
     trazer apenas campos a serem usados nas queries
+    externalizar/distribuir função do ffmpeg
 
 segurança
     tokens, vazamentos, sql injection (sequelize)
     hashear tokens
+    revisar try/catchs
 
 videos
     watch random video [por categoria]
@@ -28,12 +33,6 @@ production
 
 integração
     redes sociais
-
-user
-    remunerção
-    last login
-    videos postados
-
 
 ipfs live stream
 
