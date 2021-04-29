@@ -199,71 +199,82 @@ async function main () {
     })
 
     app.post('/video', validateVideoInput, AuthMiddleware, (req, res) => {
-        const file = req.files.file
-        const fileName = req.body.fileName
-        const categories = req.body.categories
+        try{
+            const file = req.files.file
+            const fileName = req.body.fileName
+            const categories = req.body.categories
 
-        file.mv(fileName, async (err) => {
-            if(err){
-                console.log('Error: failed to download the file')
-                return res.status(500).send(err)
-            }
+            file.mv(fileName, async (err) => {
+                if(err){
+                    console.log('Error: failed to download the file')
+                    return res.status(500).send(err)
+                }
+                const tempDir = Path.join('streamable', fileName).replace(/(\s+)/g, '-')
+                try{
+                    fs.mkdirSync(tempDir)
+                } catch(err){
+                    if(err.code === 'EEXIST')
+                        console.log('file already exists')
+                }
+                await ffmpeg(fileName).addOptions([ 
+                    '-hls_time 10',
+                    `-hls_segment_filename ${tempDir}/part_%03d.ts`,
+                    '-hls_playlist_type vod'
+                ]).output(`${tempDir}/master.m3u8`).on('end', async () => {
+                    await ipfs.files.mkdir(`/videos/${fileName}` , {parents: true});
 
-            await ffmpeg(fileName).addOptions([ 
-                '-hls_time 10',
-                '-hls_segment_filename streamable/part_%03d.ts',
-                '-hls_playlist_type vod'
-            ]).output('streamable/master.m3u8').on('end', async () => {
-                await ipfs.files.mkdir(`/videos/${fileName}` , {parents: true});
+                    fs.readdir(`./${tempDir}`, async (err, files) => {
+                        if(err){
+                            console.log('app.post/video error ' + err)
+                        }
+                        for await (const f of files){
+                            console.log(f);
+                            const fromPath = Path.join( `./${tempDir}`, f );
+                            const stat = await fs.promises.stat( fromPath );
+                            if( stat.isFile() ){
+                                const filecontent = fs.readFileSync(fromPath)
+                                console.log(`writing ipfs file: /videos/${fileName}/${f}`)
+                                await ipfs.files.write(`/videos/${fileName}/${f}`, filecontent, { create: true })
+                            }
 
-                fs.readdir('./streamable/', async (err, files) => {
-                    for await (const f of files){
-                        console.log(f);
-                        const fromPath = Path.join( './streamable', f );
-                        const stat = await fs.promises.stat( fromPath );
-                        if( stat.isFile() ){
-                            const filecontent = fs.readFileSync(fromPath)
-                            console.log(`writing ipfs file: /videos/${fileName}/${f}`)
-                            await ipfs.files.write(`/videos/${fileName}/${f}`, filecontent, { create: true })
-                            fs.rmSync(fromPath)
                         }
 
-                    }
+                        await ffmpeg(fileName).takeScreenshots({
+                            count: 1,
+                            timemarks: [ '5' ] 
+                        }, tempDir).on('end', async (err) => {
 
-                    await ffmpeg(fileName).takeScreenshots({
-                        count: 1,
-                        timemarks: [ '5' ] 
-                    }, 'streamable').on('end', async (err) => {
+                            if(err) console.log('Error generating thumbnail from video')
+                            console.log('screenshots were saved')
+                            const filecontent = fs.readFileSync(`${tempDir}/tn.png`)
+                            await ipfs.files.write(`/videos/${fileName}/thumb.png`, filecontent, { create: true })
+                        
+                            dirStat = await ipfs.files.stat(`/videos/${fileName}`)
+                            dirCid = dirStat.cid.toString()
+                            console.log(`dir cid: ${dirCid}`)
+                            await pinFile(dirCid)
+                            await File.persist(fileName, dirCid, req.user.id)
+                            for(const category of categories.split(',')){
+                                await File.associate(category.trim(), dirCid)
+                            }
 
-                        if(err) console.log('Error generating thumbnail from video')
-                        console.log('screenshots were saved')
-                        const filecontent = fs.readFileSync('streamable/tn.png')
-                        await ipfs.files.write(`/videos/${fileName}/thumb.png`, filecontent, { create: true })
-                      
-                        dirStat = await ipfs.files.stat(`/videos/${fileName}`)
-                        dirCid = dirStat.cid.toString()
-                        console.log(`dir cid: ${dirCid}`)
-                        pinFile(dirCid)
-                        fs.rmSync('streamable/tn.png')
-                        await File.persist(fileName, dirCid, req.user.id)
-                        for(const category of categories.split(',')){
-                            await File.associate(category.trim(), dirCid)
-                        }
+                            fs.rmSync(tempDir, {recursive: true})
+                            fs.rmSync(fileName)
+                            return dirStat.cid.toString();
+                        })
 
-                        return dirStat.cid.toString();
-                    })
+                        rootStat = await ipfs.files.stat(`/`)
+                        console.log(`root cid: ${rootStat.cid.toString()}`)
 
-                    rootStat = await ipfs.files.stat(`/`)
-                    console.log(`root cid: ${rootStat.cid.toString()}`)
-                    fs.rmSync(fileName)
+                    });
 
-                });
-
-            }).run()   
-               
-            return goHome(req, res, {status: `Uploading video ${fileName} to streamable format`, user: req.user })
-        })
-
+                }).run()   
+                
+                return goHome(req, res, {status: `Uploading video ${fileName} to streamable format`, user: req.user })
+            })
+        } catch (err){
+           console.log(err) 
+        }
     })
 
     app.get('/forgotPassword', (req,res) => {
