@@ -29,7 +29,8 @@
 
 <% }  %>
     
-<%if(params.user.files) { %>
+<%if(params.user.files && params.user.files.length > 0) { %>
+    <p>Meus arquivos</p>
     <ul>
         <%for(const f of params.user.files) { %> 
             <li>
@@ -37,6 +38,18 @@
                 with cid: <%= f.cid %>
             </li>
         <% }  %>
-        </ul>
+    </ul>
 <% }  %>
         
+<%if(params.user.userpendinguploads && params.user.userpendinguploads.length > 0) { %>
+    <p>Meus arquivos pendentes de upload</p>
+    <ul>
+        <%for(const f of params.user.userpendinguploads) { %> 
+            <li>
+                <%= f.originalFileName %>
+                uploaded at: <%= f.createdAt %>
+            </li>
+        <% }  %>
+    </ul>
+
+<% }  %>

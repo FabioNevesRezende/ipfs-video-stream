@@ -12,7 +12,7 @@ const nodeMailer = require('nodemailer');
 require('dotenv').config()
 
 const db = require('./persistence/db')
-const {User,File,Comment} = require('./persistence/models')
+const {User,File,Comment,Userpendingupload} = require('./persistence/models')
 const AuthMiddleware = require('./middleware/auth')
 const validateVideoInput = require('./middleware/validateVideoInput')
 const validateSingUp = require('./middleware/validateSingup')
@@ -76,7 +76,7 @@ async function main () {
         if(!req.user){
             return goHome(req, res, {})
         }
-        const user = await User.withFiles(req.user.id)
+        const user = await User.withProfileData(req.user.id)
         res.render('main', {page: 'profile', params: { csrfToken: req.csrfToken(), user }})
     })
     
@@ -210,6 +210,8 @@ async function main () {
                     return res.status(500).send(err)
                 }
                 const tempDir = Path.join('streamable', fileName).replace(/(\s+)/g, '-')
+                const pendingId = await Userpendingupload.newUpload(req.user.id, fileName)
+
                 try{
                     fs.mkdirSync(tempDir)
                 } catch(err){
@@ -260,6 +262,7 @@ async function main () {
 
                             fs.rmSync(tempDir, {recursive: true})
                             fs.rmSync(fileName)
+                            Userpendingupload.done(pendingId)
                             return dirStat.cid.toString();
                         })
 
@@ -270,7 +273,7 @@ async function main () {
 
                 }).run()   
                 
-                return goHome(req, res, {status: `Uploading video ${fileName} to streamable format`, user: req.user })
+                return res.redirect('/profile')
             })
         } catch (err){
            console.log(err) 

@@ -456,9 +456,9 @@ File.getVideosHomePage = async() => {
   return fileTags;
 };
 
-User.withFiles = async (userId) => {
+User.withProfileData = async (userId) => {
   try{
-    const user = await User.findAll({ where: {id: userId}, include: [{model: File}] })
+    const user = await User.findAll({ where: {id: userId}, include: [{model: File},{model: Userpendingupload}] })
     if(user && user[0])
     return user[0]
 
@@ -467,8 +467,50 @@ User.withFiles = async (userId) => {
   }
 }
 
+const Userpendingupload = database.define('userpendingupload', {
+  id: {
+    type: Sequelize.INTEGER,
+    autoIncrement: true,
+    allowNull: false,
+    primaryKey: true
+  },
+  originalFileName: {
+      type: Sequelize.STRING,
+      allowNull: false
+  }
+},
+{
+  updatedAt: false
+}
+)
+
+Userpendingupload.belongsTo(User);
+
+User.hasMany(Userpendingupload);
+
+Userpendingupload.newUpload = async (userId, originalFileName) => {
+  try{
+    const u = await Userpendingupload.create({
+      userId, originalFileName
+    })
+
+    return u.id;
+  }catch(err){
+    console.log('Userpendingupload.newUpload error: ' + err)
+  }
+}
+
+Userpendingupload.done = async (id) => {
+  try{
+    Userpendingupload.destroy({where: {id}})
+  }catch(err){
+    console.log('Userpendingupload.done error: ' + err)
+  }
+}
+
 module.exports.Tag = Tag;
 module.exports.File = File;
 module.exports.AuthToken = AuthToken;
 module.exports.Comment = Comment;
 module.exports.User = User;
+module.exports.Userpendingupload = Userpendingupload;
