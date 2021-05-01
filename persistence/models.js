@@ -1,5 +1,6 @@
 const Sequelize = require('sequelize');
 const database = require('./db');
+const OP = Sequelize.Op;
 const bcrypt = require('bcrypt');
 const saltRounds = 15;
 var jwt = require('jsonwebtoken');
@@ -93,7 +94,7 @@ User.newConfirmToken = async function(email){
 
 makeUserConfirmToken = async function(user){
   try{
-    const token = jwt.sign({ user }, user.username + user.password);
+    const token = jwt.sign({exp: Math.floor(Date.now() / 1000) + (86400) /* 24 hours */,  user }, user.username + user.password);
         
     const confirmToken = await UserConfirmToken.create({
       token, userId: user.id
@@ -127,7 +128,7 @@ User.resetPasswordToken = async (email) => {
   try{
     const user = await User.findOne( { where: {email} } );
     if(user){
-      const token = jwt.sign({ user }, process.env.JWT_SECRET );
+      const token = jwt.sign({ exp: Math.floor(Date.now() / 1000) + (900) /* 15 minutes */, user }, process.env.JWT_SECRET );
 
       const resetToken = await UserResetPasswordToken.create({
         token, userId: user.id
@@ -265,7 +266,7 @@ AuthToken.belongsTo(User);
 User.hasMany(AuthToken);
 
 AuthToken.generate = async function(user){
-  var token = jwt.sign({ user: { id: user.id, username: user.username, extra: (Math.random()*17) } }, user.password);
+  var token = jwt.sign({ exp: Math.floor(Date.now() / 1000) + (604800) /* 7 days */, user: { id: user.id, username: user.username, extra: (Math.random()*17) } }, user.password);
   return await AuthToken.create({ token, userId: user.id })
 }
 
@@ -279,6 +280,8 @@ AuthToken.validate = async function(token){
         const user = await User.findOne({where: { id: authToken.userId }}) // 2 query, mt ruim
         if(user.verifyToken(token)){
           user.authToken = token
+        } else {
+          authToken.destroy({ where: {token}})
         }
         return user
       }
@@ -519,9 +522,35 @@ Userpendingupload.done = async (id) => {
   }
 }
 
+doDbMaintenance = async() => {
+  try{
+    console.log('doDbMaintenance start')
+    var atdate = new Date();
+    var uctdate = new Date();
+    var udate = new Date();
+    var urptdate = new Date();
+
+    atdate.setDate( atdate.getDate() - 7 );
+    uctdate.setDate( uctdate.getDate() - 1 );
+    udate.setDate( udate.getDate() - 60 );
+    urptdate.setMinutes( udate.getMinutes() - 15 );
+
+    AuthToken.destroy({ where: { createdAt: { [OP.lt]: atdate  } } })
+    UserConfirmToken.destroy({ where: { createdAt: { [OP.lt]: uctdate  } } })
+    User.destroy({ where: { lastLogin: { [OP.lt]: udate  } } })
+    UserResetPasswordToken.destroy({ where: { createdAt: { [OP.lt]: urptdate  } } })
+    console.log('doDbMaintenance end')
+
+  }catch(err){
+    console.log('doDbMaintenance error: ' + err)
+  }
+
+}
+
 module.exports.Tag = Tag;
 module.exports.File = File;
 module.exports.AuthToken = AuthToken;
 module.exports.Comment = Comment;
 module.exports.User = User;
 module.exports.Userpendingupload = Userpendingupload;
+module.exports.doDbMaintenance = doDbMaintenance;

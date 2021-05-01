@@ -12,7 +12,7 @@ const nodeMailer = require('nodemailer');
 require('dotenv').config()
 
 const db = require('./persistence/db')
-const {User,File,Comment,Userpendingupload} = require('./persistence/models')
+const {User,File,Comment,Userpendingupload,doDbMaintenance} = require('./persistence/models')
 const AuthMiddleware = require('./middleware/auth')
 const validateVideoInput = require('./middleware/validateVideoInput')
 const validateSingUp = require('./middleware/validateSingup')
@@ -402,6 +402,7 @@ async function main () {
     
     })
 
+    setInterval(doDbMaintenance, 86400)
 /* 
     const bufferedContents = await toBuffer(ipfs.cat('QmWCscor6qWPdx53zEQmZvQvuWQYxx1ARRCXwYVE4s9wzJ')) // returns a Buffer
     const stringContents = bufferedContents.toString() // returns a string
