@@ -25,6 +25,7 @@ const validateResetPassword  = require('./middleware/validateResetPassword')
 const validateChangePassword  = require('./middleware/validateChangePassword') 
 const validateUpdateImage = require('./middleware/validateUpdateImage')
 const validateFileComment = require('./middleware/validateFileComment')
+const validateDeleteComment = require('./middleware/validateDeleteComment')
 
 async function main () {
     const repoPath = '.ipfs-node-main'
@@ -338,6 +339,16 @@ async function main () {
         } catch(err) {
             console.log(err)
             return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Error creating new comment' }});
+        }
+    })
+
+    app.post('/deleteComment', AuthMiddleware, validateDeleteComment, async (req, res) => {
+        try{
+            await Comment.remove(req.body.commentId, req.user.id) 
+            res.redirect(req.header('Referer') || '/')
+
+        } catch(err){
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Error deleting comment' }});
         }
     })
 

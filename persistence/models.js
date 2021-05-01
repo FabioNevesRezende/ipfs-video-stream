@@ -424,6 +424,22 @@ Comment.ofFile = async(fileCid) => {
   }
 }
 
+Comment.remove = async(id, userId) => {
+  console.log('Comment.remove: ' + id)
+  try{
+    const c = await Comment.findOne({ where: {id, userId} })
+    if(c) {
+      c.destroy()
+      return;
+    }
+    console.log(`Comment.remove: invalid userId ${userId} for comment ${id}`)
+
+  } catch (err){
+    console.log('Comment.remove error ' + err)
+  }
+
+}
+
 Tag.belongsToMany(File, { through: Filetag });
 
 File.belongsTo(User);

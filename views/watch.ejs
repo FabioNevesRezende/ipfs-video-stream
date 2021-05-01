@@ -39,6 +39,11 @@
         <li>
             <%= comment.text %>
             By <%= comment.user.username %>
+            <form action="/deleteComment" method="POST">
+                <input type="submit" value="Delete">
+                <input type="hidden" name="commentId" value="<%= comment.id %>">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            </form>
         </li>
     <% }  %>
     </ul>
