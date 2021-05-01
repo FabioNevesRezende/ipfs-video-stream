@@ -23,16 +23,20 @@
         <li><input type="submit" value="Logout"></li>
     </form>
     <% } %>
+    <li><button onclick="gotoRandomVideoPage()">Random</button></li>
 
 </ul>
 <%if(params.vids) { %>  
     <ul>
-    <%for(const vid of params.vids) { %> 
-        <li>
-            <a href="/watch?filehash=<%= vid.file.cid %>&filename=<%= vid.file.originalFileName %>">
-                <img src="https://gateway.ipfs.io/ipfs/<%= vid.file.cid %>/thumb.png">
-            </a>
-        </li>
+    <%for(const tag of params.vids) { %> 
+        <h3><%= tag.name %></h3>
+        <%for(const file of tag.files) { %> 
+            <li>
+                <a href="/watch?filehash=<%= file.cid %>&filename=<%= file.originalFileName %>">
+                    <img src="https://gateway.ipfs.io/ipfs/<%= file.cid %>/thumb.png">
+                </a>
+            </li>
+        <% }  %>
     <% }  %>
     </ul>
 <% }  %>

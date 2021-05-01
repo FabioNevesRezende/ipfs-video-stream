@@ -331,12 +331,18 @@ const File = database.define('file', {
 })
  
 const Tag = database.define('tag', {
-    tagName: {
+    name: {
         type: Sequelize.STRING,
         allowNull: false,
         primaryKey: true
     },
   },
+  {
+    timestamps: false
+  }
+)
+ 
+const Filetag = database.define('filetag', {},
   {
     timestamps: false
   }
@@ -415,22 +421,27 @@ Comment.ofFile = async(fileCid) => {
   }
 }
 
-Tag.belongsTo(File);
-
-File.hasMany(Tag);
+Tag.belongsToMany(File, { through: Filetag });
 
 File.belongsTo(User);
 
 User.hasMany(File);
 
-File.associate = async (tagName,cid) => {
+File.associate = async (name,cid) => {
   try{
-    const a = await Tag.create({
-      tagName,
-      fileCid: cid
+    const t = await Tag.create({
+      name
     }) 
   } catch (err){
-    console.log('File.associate error ' + err)
+    console.log('File.associate Tag.create error ' + err)
+  }
+
+  try{
+    const ft = await Filetag.create({
+      tagName: name, fileCid: cid
+    }) 
+  } catch (err){
+    console.log('File.associate Filetag.create error ' + err)
   }
 } 
 

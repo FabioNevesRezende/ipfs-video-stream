@@ -5,6 +5,7 @@ profile/user
     remunerção
     last login (x)
     canais
+    alterar email e dados
 
 manutenção
     triggers para deletar tokens invalidos, usuarios inativos, etc

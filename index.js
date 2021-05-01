@@ -57,6 +57,8 @@ async function main () {
 
     const goHome = async (req, res, args) => {
         const vids = await File.getVideosHomePage();
+        console.log('vids')
+        console.log(JSON.stringify(vids))
         return res.render('main', {page: 'home', params: {...args, csrfToken: req.csrfToken(), vids }})
 
     } 

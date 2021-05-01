@@ -14,13 +14,44 @@
 
 </head>
 <body>
+    <% if(params.vids && params.vids.length > 0) { %>  
+        <% var cids = {}  %>
+        <% for(const tag of params.vids) { %> 
+            <% for(const file of tag.files) { %> 
+                <% if(cids[tag.name]) { %>
+                    <% cids[tag.name].push(file.cid) %>
+                <% } else { %>
+                    <% cids[tag.name] = []; cids[tag.name].push(file.cid) %>
+                <% }  %>
+            <% }  %>
+        <% }  %>
+    <% }  %>
+
     <script>
-        createNode = async function(){
+        localStorage.setItem('cids', JSON.stringify(<%- JSON.stringify(cids) %>));
+        createNode = async () => {
             //repoPath = 'ipfs-local-' + Math.random()
             node = await Ipfs.create() 
             console.log('node created: ' + node ) 
             return node
         }
+
+        gotoRandomVideoPage = (tag=undefined) => {
+            if(localStorage.getItem('cids')){
+                const cids = JSON.parse(localStorage.getItem('cids'))
+                if(tag){
+                    window.location.href = "/watch?filehash=" + cids[tag][Math.floor( Math.random() * (cids[tag].length-1) )];
+                    return;
+                }
+                const tags = Object.keys(cids)
+                const randIndex = Math.floor(Math.random() * tags.length)
+                const randKey = tags[randIndex]
+                const t = cids[randKey]
+
+                window.location.href = "/watch?filehash=" + t[ Math.floor( Math.random() * ( t.length-1) ) ];
+            }     
+        }
+
     </script>
     
     <%- include(page, params) %>
