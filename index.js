@@ -64,48 +64,77 @@ async function main () {
 
     } 
 
+    const goProfile = async (req, res, args) => {
+        const user = await User.withProfileData(req.user.id)
+        return res.render('main', {page: 'profile', params: {...args, csrfToken: req.csrfToken(), user }})
+    }
+
     app.get('/', getLoggedUser, async (req, res) => {
-        return goHome(req, res, {user: req.user})
+        try{
+            return goHome(req, res, {user: req.user})
+        } catch(err){
+            console.log('app.get/ error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+        }
     })
 
     app.get('/singup', getLoggedUser, (req, res) => {
-        if(req.user){
-            return goHome(req, res, {user: req.user})
+        try{
+            if(req.user){
+                return goHome(req, res, {user: req.user})
+            }
+            return res.render('main', {page: 'singup', params: {csrfToken: req.csrfToken()}})
+        } catch(err){
+            console.log('app.get/singup error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
         }
-        res.render('main', {page: 'singup', params: {csrfToken: req.csrfToken()}})
     })
 
     app.get('/profile', AuthMiddleware, async (req, res) => {
-        if(!req.user){
-            return goHome(req, res, {})
+        try{
+            if(!req.user){
+                return goHome(req, res, {})
+            }
+            return goProfile(req, res, {})
+        } catch(err){
+            console.log('app.get/profile error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
         }
-        const user = await User.withProfileData(req.user.id)
-        res.render('main', {page: 'profile', params: { csrfToken: req.csrfToken(), user }})
     })
     
     app.post('/changePassword', AuthMiddleware, validateChangePassword, async (req, res) => {
-        const changed = await req.user.changePassword(req.body.password, req.body.newPassword)
-        if(changed) 
-            res.render('main', {page: 'profile', params: { csrfToken: req.csrfToken(), user: req.user }})
-        else return goHome(req, res, {status: 'Error changing user password'})
+        try{
+            const changed = await req.user.changePassword(req.body.password, req.body.newPassword)
+            if(changed) 
+                return goProfile(req, res, {})
+            else return goHome(req, res, {status: 'Error changing user password'})
+        } catch(err){
+            console.log('app.post/changePassword error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+        }
     })
 
     app.get('/login', getLoggedUser, (req, res) => {
-        if(req.user){
-            return goHome(req, res, {user: req.user})
+        try{
+            if(req.user){
+                return goHome(req, res, {user: req.user})
+            }
+            res.render('main', {page: 'login', params: {csrfToken: req.csrfToken()}})
+        } catch(err){
+            console.log('app.get/login error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
         }
-        res.render('main', {page: 'login', params: {csrfToken: req.csrfToken()}})
     })
 
     app.post('/login', validateLogin, async (req, res) => {
 
-        const { username, password } = req.body;
-
-        if (!username || !password) {
-            return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid request' }});
-        }
-
         try {
+            const { username, password } = req.body;
+
+            if (!username || !password) {
+                return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid request' }});
+            }
+
             let user = await User.authenticate(username, password)
             if(user){
                 console.log('returned user: ' + JSON.stringify(user))
@@ -118,22 +147,27 @@ async function main () {
             } else console.log('Usuário não autenticado')
 
         } catch (err) {
-            console.log(err)
+            console.log('app.post/login error ' + err)
             return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid credentials' }});
         }
 
     })
 
     app.post('/logout', AuthMiddleware, async (req, res) => {
+        try{
+            const { user, cookies: { authToken: authToken } } = req
+        
+            if (user && authToken) {
+                await User.logout(authToken);
+                return goHome(req, res, {})
+            }
 
-        const { user, cookies: { authToken: authToken } } = req
-      
-        if (user && authToken) {
-            await User.logout(authToken);
-            return goHome(req, res, {})
+            return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid request' }});
+        } catch(err){
+            console.log('app.post/logout error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
         }
 
-        return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid request' }});
       });
 
     app.post('/singup', validateSingUp, async (req, res) => {
@@ -150,55 +184,84 @@ async function main () {
             }
             
         } catch(err) {
-            console.log(err)
-            return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid credentials' }});
+            console.log('app.post/singup error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Invalid credentials' }});
         }
 
     })
     
     app.get('/watch', getLoggedUser, async (req, res) => {
-        const c = await Comment.ofFile(req.query.filehash)
-        res.render('main', {page: 'watch', params: { 
-            comments: c,
-            fileHash: req.query.filehash,
-            fileName: req.query.filename,
-            csrfToken: req.csrfToken()
-         }})
+        try{
+            const c = await Comment.ofFile(req.query.filehash)
+            res.render('main', {page: 'watch', params: { 
+                comments: c,
+                fileHash: req.query.filehash,
+                fileName: req.query.filename,
+                csrfToken: req.csrfToken()
+            }})
+
+        } catch(err){
+            console.log('app.get/watch error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+        }
     })
 
     app.get('/validateSingupToken', async (req, res) => {
-        if(req.query.token){
-            if(await User.validateSingup(req.query.token))
-                return goHome(req, res, {status: 'Token validated!'})
-            else
-                return goHome(req, res, {status: 'Token NOT validated!'})
+        try{
+            if(req.query.token){
+                if(await User.validateSingup(req.query.token))
+                    return goHome(req, res, {status: 'Token validated!'})
+                else
+                    return goHome(req, res, {status: 'Token NOT validated!'})
+            }
+            else{
+                res.redirect('/')
+            }
+                
+        } catch(err){
+            console.log('app.get/validateSingupToken error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
         }
-        else{
-            res.redirect('/')
-        }
+
     })
 
     app.get('/newSingupToken', async (req, res) => {
-        res.render('main', {page: 'newToken', params: { csrfToken: req.csrfToken() } })
+        try{
+            res.render('main', {page: 'newToken', params: { csrfToken: req.csrfToken() } })
+        } catch(err){
+            console.log('app.get/newSingupToken error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+        }
     })
 
     app.post('/newSingupToken', validateNewSingupToken, async (req, res) => {
-        if(req.body.email){
-            const user = await User.newConfirmToken(req.body.email)
-            if(user && user.confirmToken){
-                sendConfirmEmail(user)
-                return goHome(req, res, {status: 'New confirmation email sent'})
-            }
-            else return goHome(req, res, {status: 'Error sending new confirmation email'})
+        try{
+            if(req.body.email){
+                const user = await User.newConfirmToken(req.body.email)
+                if(user && user.confirmToken){
+                    sendConfirmEmail(user)
+                    return goHome(req, res, {status: 'New confirmation email sent'})
+                }
+                else return goHome(req, res, {status: 'Error sending new confirmation email'})
 
+            }
+            else{
+                res.redirect('/')
+            }
+        } catch(err){
+            console.log('app.post/newSingupToken error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
         }
-        else{
-            res.redirect('/')
-        }
+
     })
 
     app.get('/upload', AuthMiddleware, (req, res) => {
-        res.render('main', {page: 'upload', params: { csrfToken: req.csrfToken() } })
+        try{
+            res.render('main', {page: 'upload', params: { csrfToken: req.csrfToken() } })
+        } catch(err){
+            console.log('app.get/upload error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+        }
     })
 
     app.post('/video', validateVideoInput, AuthMiddleware, (req, res) => {
@@ -279,49 +342,70 @@ async function main () {
                 return res.redirect('/profile')
             })
         } catch (err){
-           console.log(err) 
+            console.log('app.post/video error ' + err)
         }
     })
 
     app.get('/forgotPassword', (req,res) => {
-        if(req.query.token){
-            res.render('main', {page: 'forgotPassword', params: {csrfToken: req.csrfToken(), token: req.query.token} })
-        } else {
-            res.render('main', {page: 'forgotPassword', params: {csrfToken: req.csrfToken()} })
+        try{
+            if(req.query.token){
+                res.render('main', {page: 'forgotPassword', params: {csrfToken: req.csrfToken(), token: req.query.token} })
+            } else {
+                res.render('main', {page: 'forgotPassword', params: {csrfToken: req.csrfToken()} })
+            }
+        } catch(err){
+            console.log('app.get/forgotPassword error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
         }
+
     })
 
     app.post('/requestResetPassword', validateResetPassword, async (req,res) => {
-        const user = await User.resetPasswordToken(req.body.email) 
-        sendEmailResetPassword(user)
-        return goHome(req, res, {})
-    })
-
-    app.post('/resetPassword', validateForgotPassword, async (req,res) => {
-        const user = await User.resetPassword(req.body.password, req.body.passwordResetToken)
-        if(user){
-            return goHome(req, res, {user})
-        } else {
-            return goHome(req, res, {status: 'Error reseting password'})
+        try{
+            const user = await User.resetPasswordToken(req.body.email) 
+            sendEmailResetPassword(user)
+            return goHome(req, res, {})
+        } catch(err){
+            console.log('app.post/requestResetPassword error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
         }
     })
 
-    app.post('/changeProfilePhoto', AuthMiddleware, validateUpdateImage, async (req,res) => {
-
-        const image = req.files.image
-        await image.mv('imagefile', async (err) => {
-            if(err){
-                console.log('Error: failed to download the file')
-                return res.status(500).send(err)
+    app.post('/resetPassword', validateForgotPassword, async (req,res) => {
+        try{
+            const user = await User.resetPassword(req.body.password, req.body.passwordResetToken)
+            if(user){
+                return goHome(req, res, {user})
+            } else {
+                return goHome(req, res, {status: 'Error reseting password'})
             }
+        } catch(err){
+            console.log('app.post/resetPassword error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+        }
 
-            imgCid = await addFile('imagefile')
-            req.user = await User.updateProfilePhoto(req.user, imgCid) 
+    })
 
-            fs.rmSync('imagefile')
-            return res.render('main', {page: 'profile', params: { csrfToken: req.csrfToken(), user: req.user }})
+    app.post('/changeProfilePhoto', AuthMiddleware, validateUpdateImage, async (req,res) => {
+        try{
+            const image = req.files.image
+            await image.mv('imagefile', async (err) => {
+                if(err){
+                    console.log('Error: failed to download the file')
+                    return res.status(500).send(err)
+                }
 
-        })
+                imgCid = await addFile('imagefile')
+                req.user = await User.updateProfilePhoto(req.user, imgCid) 
+
+                fs.rmSync('imagefile')
+                return goProfile(req, res, {})
+
+            })
+        } catch(err){
+            console.log('app.post/changeProfilePhoto error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+        }
 
 
     })
@@ -337,7 +421,7 @@ async function main () {
             }
             
         } catch(err) {
-            console.log(err)
+            console.log('app.post/comment error ' + err)
             return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Error creating new comment' }});
         }
     })
@@ -348,6 +432,7 @@ async function main () {
             res.redirect(req.header('Referer') || '/')
 
         } catch(err){
+            console.log('app.post/deleteComment error ' + err)
             return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Error deleting comment' }});
         }
     })
@@ -368,42 +453,50 @@ async function main () {
     }
 
     const sendEmailResetPassword = (user) => {
-        console.log(`Sending confirmation email to ${user.email}`)
-          
-        const mailOptions = {
-          from: process.env.FROM_EMAIL,
-          to: user.email,
-          subject: 'Reset password',
-          html: `<p><a href="http://127.0.0.1:3000/forgotPassword?token=${user.resetToken.token}">Click here</a> to reset your password</p>`
-        };
-        
-        transporter.sendMail(mailOptions, function(error, info){
-          if (error) {
-            console.log(error);
-          } else {
-            console.log('Email sent: ' + info.response);
-          }
-        });
+        try{
+            console.log(`Sending confirmation email to ${user.email}`)
+            
+            const mailOptions = {
+            from: process.env.FROM_EMAIL,
+            to: user.email,
+            subject: 'Reset password',
+            html: `<p><a href="http://127.0.0.1:3000/forgotPassword?token=${user.resetToken.token}">Click here</a> to reset your password</p>`
+            };
+            
+            transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Email sent: ' + info.response);
+            }
+            });
+        } catch(err){
+            console.log('sendEmailResetPassword error: ' + err)
+        }
+
     }
 
     const sendConfirmEmail = (user) => {
-        console.log(`Sending confirmation email to ${user.email}`)
-          
-        const mailOptions = {
-          from: process.env.FROM_EMAIL,
-          to: user.email,
-          subject: 'Confirm register',
-          html: `<p><a href="http://127.0.0.1:3000/validateSingupToken?token=${user.confirmToken.token}">Click here</a> to confirm your registration</p>`
-        };
-        
-        transporter.sendMail(mailOptions, function(error, info){
-          if (error) {
-            console.log(error);
-          } else {
-            console.log('Email sent: ' + info.response);
-          }
-        });
-
+        try{
+            console.log(`Sending confirmation email to ${user.email}`)
+            
+            const mailOptions = {
+            from: process.env.FROM_EMAIL,
+            to: user.email,
+            subject: 'Confirm register',
+            html: `<p><a href="http://127.0.0.1:3000/validateSingupToken?token=${user.confirmToken.token}">Click here</a> to confirm your registration</p>`
+            };
+            
+            transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Email sent: ' + info.response);
+            }
+            });
+        } catch(err){
+            console.log('sendConfirmEmail error: ' + err)
+        }
     }
 
     db.sync().then(() => {
