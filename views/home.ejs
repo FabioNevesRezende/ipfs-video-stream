@@ -26,7 +26,7 @@
     <li><button onclick="gotoRandomVideoPage()">Random</button></li>
 
 </ul>
-<%if(params.vids) { %>  
+<%if(params?.vids && params.vids.length > 0) { %>  
     <ul>
     <%for(const tag of params.vids) { %> 
         <h3><%= tag.name %></h3>

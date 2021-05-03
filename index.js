@@ -26,6 +26,7 @@ const validateChangePassword  = require('./middleware/validateChangePassword')
 const validateUpdateImage = require('./middleware/validateUpdateImage')
 const validateFileComment = require('./middleware/validateFileComment')
 const validateDeleteComment = require('./middleware/validateDeleteComment')
+const validateDeleteFile = require('./middleware/validateDeleteFile')
 
 async function main () {
     const repoPath = '.ipfs-node-main'
@@ -434,6 +435,21 @@ async function main () {
         } catch(err){
             console.log('app.post/deleteComment error ' + err)
             return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Error deleting comment' }});
+        }
+    })
+
+    app.post('/deleteFile', AuthMiddleware, validateDeleteFile, async(req, res) => {
+        try{
+            const f = await File.findOne({ where: { cid: req.body.cid } })
+            if(f?.userId === req.user.id){
+                await File.delete(f.cid)
+                return res.redirect(req.header('Referer') || '/')
+
+            }
+            throw new Error("Could not delete file, invalid userId")
+        }catch(err){
+            console.log('app.post/deleteFile error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Error deleting file' }});
         }
     })
 

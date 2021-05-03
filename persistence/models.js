@@ -486,6 +486,14 @@ File.getVideosHomePage = async() => {
   return fileTags;
 };
 
+File.delete = async(cid) => {
+  try{
+    File.destroy({ where: { cid }})
+  }catch(err){
+    console.log('File.delete error ' + err)
+  }
+}
+
 User.withProfileData = async (userId) => {
   try{
     const user = await User.findAll({ where: {id: userId}, include: [{model: File},{model: Userpendingupload}] })

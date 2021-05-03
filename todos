@@ -3,14 +3,14 @@ user interface bonita
 
 terms of use 
 
-    triggers para deletar tokens invalidos, usuarios inativos, etc
+    triggers para deletar tokens invalidos, usuarios inativos, etc (x)
 
-    revisar try/catchs
+    revisar try/catchs (x)
 
 
 profile/user
     alterar email e dados
-    deletar files
+    deletar files (x)
     profile photo (x)
     control user uploads (x)
     last login (x)
