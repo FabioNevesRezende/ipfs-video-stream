@@ -44,6 +44,11 @@ const User = database.define('user', {
     lastLogin: {
       type: Sequelize.DATE,
       allowNull: true
+    },
+    adminLevel: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0
     }
 });
 
@@ -450,6 +455,22 @@ Comment.remove = async(id, userId) => {
 
   } catch (err){
     console.log('Comment.remove error ' + err)
+  }
+
+}
+
+Comment.removeById = async(id) => {
+  console.log('Comment.removeById: ' + id)
+  try{
+    const c = await Comment.findOne({ where: {id} })
+    if(c) {
+      c.destroy()
+      return;
+    }
+    console.log(`Comment.removeById: invalid comment id ${id}`)
+
+  } catch (err){
+    console.log('Comment.removeById error ' + err)
   }
 
 }

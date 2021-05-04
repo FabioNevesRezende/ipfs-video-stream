@@ -430,6 +430,11 @@ async function main () {
 
     app.post('/deleteComment', AuthMiddleware, validateDeleteComment, async (req, res) => {
         try{
+            if(req.user.adminLevel > 0){
+                await Comment.removeById(req.body.commentId) 
+                res.redirect(req.header('Referer') || '/')
+                return
+            }
             await Comment.remove(req.body.commentId, req.user.id) 
             res.redirect(req.header('Referer') || '/')
 
@@ -442,7 +447,7 @@ async function main () {
     app.post('/deleteFile', AuthMiddleware, validateDeleteFile, async(req, res) => {
         try{
             const f = await File.findOne({ where: { cid: req.body.cid } })
-            if(f?.userId === req.user.id){
+            if(f?.userId === req.user.id || req.user.adminLevel > 0){
                 await File.delete(f.cid)
                 return res.redirect(req.header('Referer') || '/')
 
@@ -539,7 +544,7 @@ async function main () {
     
     })
 
-    setInterval(doDbMaintenance, 86400)
+    setInterval(doDbMaintenance, 864000)
 /* 
     const bufferedContents = await toBuffer(ipfs.cat('QmWCscor6qWPdx53zEQmZvQvuWQYxx1ARRCXwYVE4s9wzJ')) // returns a Buffer
     const stringContents = bufferedContents.toString() // returns a string
