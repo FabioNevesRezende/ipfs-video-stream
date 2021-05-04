@@ -1,10 +1,9 @@
-<p>Hash: <%= params.fileHash %></p>
-<p>Name: <%= params.fileName %></p>
+<p>Hash: <%= params.file.cid %></p>
 <video id="video" controls></video>
 <button onclick="gotoRandomVideoPage()">Random</button>
 <form method="POST" action="/deleteFile">
     <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-    <input type="hidden" name="cid" value="<%= params.fileHash %>" />
+    <input type="hidden" name="cid" value="<%= params.file.cid %>" />
     <input type="submit" value="Delete File">
 </form>
 <script src="https://cdn.jsdelivr.net/npm/hlsjs-ipfs-loader@0.3.0/dist/index.js"></script>
@@ -13,8 +12,7 @@
     /* global Hls Ipfs HlsjsIpfsLoader */
     /* eslint-env browser */
     document.addEventListener('DOMContentLoaded', async () => {
-    const fileHash = '<%= params.fileHash %>'
-    const fileName = '<%= params.fileName %>'
+    const fileHash = '<%= params.file.cid %>'
     console.log('hash file: ' + fileHash)
     Hls.DefaultConfig.loader = HlsjsIpfsLoader
     Hls.DefaultConfig.debug = false
@@ -33,14 +31,14 @@
 <form method="POST" action="/comment">
     <textarea name="commentText" maxlength="512"></textarea>
     <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-    <input type="hidden" name="cid" value="<%= params.fileHash %>" />
+    <input type="hidden" name="cid" value="<%= params.file.cid %>" />
     <input type="submit" value="Comment">
 </form>
 
 
-<%if(params.comments) { %>  
+<%if(params.file?.comments && params.file?.comments.length > 0) { %>  
     <ul>
-    <%for(const comment of params.comments) { %> 
+    <%for(const comment of params.file.comments) { %> 
         <li>
             <%= comment.text %>
             By <%= comment.user.username %>

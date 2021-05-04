@@ -529,6 +529,14 @@ File.delete = async(cid) => {
   }
 }
 
+File.getByCid = async(cid) => {
+  try{
+    return await File.findOne({ where: { cid }, include: [{model: Comment, include: [{model: User}] }, {model: FileReaction}] })
+  }catch(err){
+    console.log('File.getByCid error ' + err)
+  }
+}
+
 User.withProfileData = async (userId) => {
   try{
     const user = await User.findAll({ where: {id: userId}, include: [{model: File},{model: Userpendingupload}] })

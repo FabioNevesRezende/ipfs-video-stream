@@ -19,6 +19,7 @@ const validateSingUp = require('./middleware/validateSingup')
 const validateLogin = require('./middleware/validateLogin')
 const getLoggedUser = require('./middleware/getLoggedUser')
 const handleCsrfError = require('./middleware/handleCsrfError');
+const handleGetWatch = require('./middleware/handleGetWatch');
 const validateNewSingupToken = require('./middleware/validateNewSingupToken')
 const validateForgotPassword = require('./middleware/validateForgotPassword') 
 const validateResetPassword  = require('./middleware/validateResetPassword') 
@@ -192,16 +193,17 @@ async function main () {
 
     })
     
-    app.get('/watch', getLoggedUser, async (req, res) => {
+    app.get('/watch', getLoggedUser, handleGetWatch, async (req, res) => {
         try{
-            const c = await Comment.ofFile(req.query.filehash)
-            res.render('main', {page: 'watch', params: { 
-                comments: c,
-                fileHash: req.query.filehash,
-                fileName: req.query.filename,
-                csrfToken: req.csrfToken()
-            }})
-
+            const f = await File.getByCid(req.query.filehash)
+            if(f){
+                return res.render('main', {page: 'watch', params: { 
+                    file: f,
+                    csrfToken: req.csrfToken()
+                }})
+            }
+            return res.status(400).render('main', { page: 'error', params: { errorMessage: 'File not indexed' }});
+            
         } catch(err){
             console.log('app.get/watch error ' + err)
             return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
