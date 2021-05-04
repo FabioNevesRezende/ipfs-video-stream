@@ -252,6 +252,20 @@ User.prototype.changePassword = async function(oldPassword, newPassword){
   }
 }
 
+User.updateData = async (user, password) => {
+  try{
+    if (bcrypt.compareSync(password, user.password)) {
+      await user.save()
+      return true
+    }
+
+  }catch(err){
+    console.log('User.updateData error: ' + err)
+  }
+
+  return false
+}
+
 const AuthToken = database.define('authtoken', {
     token: {
         type: Sequelize.STRING(512),

@@ -27,6 +27,7 @@ const validateUpdateImage = require('./middleware/validateUpdateImage')
 const validateFileComment = require('./middleware/validateFileComment')
 const validateDeleteComment = require('./middleware/validateDeleteComment')
 const validateDeleteFile = require('./middleware/validateDeleteFile')
+const validateChangeUserData = require('./middleware/validateChangeUserData')
 
 async function main () {
     const repoPath = '.ipfs-node-main'
@@ -450,6 +451,22 @@ async function main () {
         }catch(err){
             console.log('app.post/deleteFile error ' + err)
             return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Error deleting file' }});
+        }
+    })
+
+    app.post('/changeUserData', AuthMiddleware, validateChangeUserData, async(req, res) => {
+        try{
+            req.user.username = req.body.username
+            req.user.email = req.body.email
+
+            if(await User.updateData(req.user, req.body.password)){
+                return res.redirect(req.header('Referer') || '/')
+
+            }
+            throw new Error("Could not update user data")
+        }catch(err){
+            console.log('app.post/changeUserData error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Error processing request' }});
         }
     })
 

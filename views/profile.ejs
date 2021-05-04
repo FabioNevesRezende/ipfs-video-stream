@@ -26,10 +26,25 @@
         <input type="hidden" name="_csrf" value="<%= csrfToken %>" />        
         <input type="submit" value="Change profile photo">
     </form>
+    <hr><br>
+    <form method="POST" action="/changeUserData">
+        <label to="username">Username:</label>
+        <input type="text" name="username" value="<%= params.user.username %>" required/>
+        <br/>
+        <label to="email">Email:</label>
+        <input type="email" name="email" value="<%= params.user.email %>" required/>
+        <br/>
+
+        <label to="password">Password</label>
+        <input type="password" name="password" required/>
+
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />        
+        <input type="submit" value="Change user data">
+    </form>
 
 <% }  %>
     
-<%if(params.user.files && params.user.files.length > 0) { %>
+<%if(params?.user?.files?.length > 0) { %>
     <p>Meus arquivos</p>
     <ul>
         <%for(const f of params.user.files) { %> 
@@ -41,7 +56,7 @@
     </ul>
 <% }  %>
         
-<%if(params.user.userpendinguploads && params.user.userpendinguploads.length > 0) { %>
+<%if(params?.user?.userpendinguploads?.length > 0) { %>
     <p>Meus arquivos pendentes de upload</p>
     <ul>
         <%for(const f of params.user.userpendinguploads) { %> 
