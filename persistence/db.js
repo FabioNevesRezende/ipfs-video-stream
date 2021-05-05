@@ -1,5 +1,5 @@
 const Sequelize = require('sequelize');
-const cnx = new Sequelize('mysql://glaurung:12345678@127.0.0.1:3306/glaurung');
+const cnx = new Sequelize(process.env.DB_CONNECTION_STRING);
 
 
 module.exports = cnx;
