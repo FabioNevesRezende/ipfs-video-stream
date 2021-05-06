@@ -1,13 +1,27 @@
-<div>
-    <form method="POST" action="/login">
-        <label to="username">Username:</label>
-        <input type="text" name="username" required/>
-        <br/>
-        <label to="password">Password:</label>
-        <input type="password" name="password" required/>
-        <br/>
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-        <input type="submit" value="Login"/>
-    </form>
-    <a href="/forgotPassword" type="button">I Forgot my password</a>
-</div>
+<br><br><main class="form-signin">
+  <form method="POST" action="/login">
+    <div class="form-floating">
+      <img class="mb-4" src="logo.png" alt="no logo" width="72" height="57">
+    </div>
+    <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
+
+    <div class="form-floating">
+      <input type="text" name="username"  class="form-control" id="floatingInput" placeholder="username">
+      <label for="floatingInput">Username</label>
+    </div>
+    <div class="form-floating">
+      <input type="password" name="password"  class="form-control" id="floatingPassword" placeholder="Password">
+      <label for="floatingPassword">Password</label>
+    </div>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
+    <div class="checkbox mb-3">
+      <label>
+        <input type="checkbox" value="remember-me"> Remember me
+      </label>
+    </div>
+    <button class="w-100 btn btn-lg btn-primary" type="submit">Login</button>
+    <a href="/forgotPassword">I Forgot my password</a>
+    <p class="mt-5 mb-3 text-muted">&copy; 2017–2021</p>
+  </form>
+</main>

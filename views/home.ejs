@@ -1,42 +1,41 @@
-<h1>Upload ipfs</h1>
-<h4>Bem vindo <%if(params.user) { %>
-      <%= params.user.username %>
-      <p>UserToken:<%=  params.user.authToken %></p>
-     <% } else { %>
-        <%= 'visitante' %>
-        <% }  %>
+<br><br>
+<h4>Uploads mais recentes
 </h4>
 
 <%if(params.status) { %>   
 <p><%= params.status %></p>  
 <% }  %>
 
-<ul>
-    <li><a href="/login">Login</a></li>
-    <li><a href="/singup">Sing Up</a></li>
-    <li><a href="/upload">Upload</a></li>
-    <li><a href="/watch">Watch</a></li>
-    <li><a href="/profile">Profile</a></li>
-    <%if(params.user) { %>
-    <form method="POST" action="/logout"> 
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-        <li><input type="submit" value="Logout"></li>
-    </form>
-    <% } %>
-    <li><button onclick="gotoRandomVideoPage()">Random</button></li>
-
-</ul>
 <%if(params?.vids && params.vids.length > 0) { %>  
-    <ul>
+
+    <div class="album py-5 bg-light">
+        <div class="container">
+    
+          <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+
     <%for(const tag of params.vids) { %> 
-        <h3><%= tag.name %></h3>
         <%for(const file of tag.files) { %> 
-            <li>
-                <a href="/watch?filehash=<%= file.cid %>&filename=<%= file.originalFileName %>">
-                    <img src="https://gateway.ipfs.io/ipfs/<%= file.cid %>/thumb.png">
-                </a>
-            </li>
+                <div class="col">
+                    <div class="card shadow-sm">
+                        <a href="/watch?filehash=<%= file.cid %>&filename=<%= file.originalFileName %>">
+                            <img src="https://gateway.ipfs.io/ipfs/<%= file.cid %>/thumb.png"  width="100%" height="225" preserveAspectRatio="xMidYMid slice">
+                        </a>
+                      <div class="card-body">
+                        <p class="card-text">
+                            <%= file.originalFileName %>
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                          <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
+                          </div>
+                          <small class="text-muted">9 mins</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div> 
         <% }  %>
     <% }  %>
-    </ul>
+      </div>
+    </div>
+</div>
 <% }  %>
