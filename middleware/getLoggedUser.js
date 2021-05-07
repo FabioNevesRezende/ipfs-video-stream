@@ -3,7 +3,7 @@ const { User, AuthToken } = require('../persistence/models');
 module.exports = async function(req, res, next) {
   console.log('running middleware find logged user')
   
-  const token = req.cookies.authToken ;
+  const token = req.cookies.authToken || req.headers.authorization;
 
   try{
 
