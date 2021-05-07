@@ -3,3 +3,5 @@ package-lock.json
 .ipfs-node*
 *.rest
 .env
+*.css.map
+public/main.css

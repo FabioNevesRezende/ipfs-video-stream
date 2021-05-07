@@ -1,12 +1,27 @@
-<form action="/video" method="POST" enctype="multipart/form-data">
-    <label for="">Filename</label>
-    <input type="text" name="fileName" maxlength="25" required>
-    <br><br>
-    <label for="">File</label>
-    <input type="file" name="file" required>
-    <br><br>
-    <label for="">Categories</label>
-    <input type="text" name="categories" maxlength="1024" required>
-    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-    <input type="submit" value="Submit">
-</form>
+<br><br><main class="form-signin text-center">
+    <form action="/video" method="POST" enctype="multipart/form-data">
+      <div class="form-floating">
+        <img class="mb-4" src="logo.png" alt="no logo" width="72" height="57">
+      </div>
+      <h1 class="h3 mb-3 fw-normal">Upload new video</h1>
+  
+      <div class="form-floating">
+        <input type="text" name="fileName" maxlength="25" required  class="form-control" placeholder="Filename">
+        <label for="fileName">Filename</label>
+      </div>
+      <div class="form-floating">
+
+        <div class="form-post-file-input-box">
+            <input type="file" name="file" required class="form-control">
+        </div>
+      </div>
+      <div class="form-floating">
+        <input type="text" name="categories" maxlength="1024" required class="form-control">
+        <label for="categories">Categories</label>
+      </div>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+  
+      <button class="w-100 btn btn-lg btn-primary" type="submit">Upload</button>
+      <p class="mt-5 mb-3 text-muted">&copy; 2017–2021</p>
+    </form>
+  </main>
