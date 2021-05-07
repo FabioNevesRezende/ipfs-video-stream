@@ -3,6 +3,8 @@ user interface bonita
 
 terms of use 
 
+busca por videos/por tags
+
     triggers para deletar tokens invalidos, usuarios inativos, etc (x)
 
     revisar try/catchs (x)

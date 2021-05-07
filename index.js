@@ -72,6 +72,12 @@ async function main () {
         return res.render('main', {page: 'profile', params: {...args, csrfToken: req.csrfToken(), user }})
     }
 
+    app.get('/randomVideos', async(req,res) => {
+        const vids = await File.getVideosHomePage();
+        return res.status(200).json(vids)
+
+    })
+
     app.get('/', getLoggedUser, async (req, res) => {
         try{
             return goHome(req, res, {user: req.user})

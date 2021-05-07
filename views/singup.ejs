@@ -1,22 +1,35 @@
-<div>
-
-    <form method="POST" action="/singup">
-        <label to="username">Username:</label>
-        <input type="text" name="username" required/>
-        <br/>
-        <label to="email">Email:</label>
-        <input type="email" name="email" required/>
-        <br/>
-        <label to="password">Password:</label>
-        <input type="password" name="password" required/>
-        <br/>
-        <label to="passwordConfirm">Confirm password:</label>
-        <input type="password" name="passwordConfirm" required/>
-        <br/>
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-        <input type="submit" value="Register"/>
-        <!--captcha -->
+<br><br><main class="form-signin  text-center">
+    <form method="POST" action="/login">
+      <div class="form-floating">
+        <img class="mb-4" src="logo.png" alt="no logo" width="72" height="57">
+      </div>
+      <h1 class="h3 mb-3 fw-normal">Sing up</h1>
+  
+      <div class="form-floating">
+        <input type="text" name="username"  class="form-control" id="floatingInput" placeholder="username">
+        <label for="floatingInput">Username</label>
+      </div>
+      <div class="form-floating">
+        <input type="email" name="email" class="form-control" id="floatingInput" placeholder="mail@example.com">
+        <label for="floatingInput">Email address</label>
+      </div>
+      <div class="form-floating">
+        <input type="password" name="password"  class="form-control" id="floatingPassword" placeholder="Password">
+        <label for="floatingPassword">Password</label>
+      </div>
+      <div class="form-floating">
+        <input type="password" name="passwordConfirm"  class="form-control" id="floatingPassword" placeholder="Password">
+        <label for="floatingPassword">Confirm password</label>
+      </div>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+  
+      <div class="checkbox mb-3">
+        <label>
+          <input type="checkbox" value="remember-me"> Remember me
+        </label>
+      </div>
+      <button class="w-100 btn btn-lg btn-primary" type="submit">Register</button>
+      <a href="/newSingupToken">Send new confirmation email</a>
+      <p class="mt-5 mb-3 text-muted">&copy; 2017–2021</p>
     </form>
-
-    <a href="/newSingupToken" type="button">Send new confirmation email</a>
-</div>
+  </main>
