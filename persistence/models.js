@@ -342,6 +342,10 @@ const File = database.define('file', {
         allowNull: false,
         primaryKey: true
     },
+    description: {
+        type: Sequelize.TEXT,
+        allowNull: true
+    },
     size: {
         type: Sequelize.INTEGER,
         allowNull: true
@@ -499,7 +503,7 @@ File.associate = async (name,cid) => {
   }
 } 
 
-File.persist = async (originalFileName,cid,userId,size=undefined,mimetype=undefined) => {
+File.persist = async (originalFileName,cid,userId,size=undefined,mimetype=undefined,description=undefined) => {
     console.log('persistFile: ' + originalFileName)
   
     try{
@@ -508,7 +512,8 @@ File.persist = async (originalFileName,cid,userId,size=undefined,mimetype=undefi
         cid,
         userId,
         size,
-        mimetype
+        mimetype,
+        description
     }) 
   } catch (err){
     console.log('File.persist error ' + err)

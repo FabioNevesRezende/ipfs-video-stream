@@ -1,60 +1,160 @@
-
+<br><br>
+<main>
 <%if(params.user) { %>   
-    <p>Username <%= params.user.username %></p>  
-    <p>Email: <%= params.user.email %></p>
-    <img src="https://gateway.ipfs.io/ipfs/<%= params.user.profilePhotoCid %>" alt="profile-photo">
+    <div class="container px-4 py-5">
+        <h2 class="pb-2 border-bottom">Profile</h2>
 
-    <form method="POST" action="/changePassword">
-        <br/>
-        <label to="password">Current Password:</label>
-        <input type="password" name="password" required/>
-        <br/>
-        <label to="newPassword">New password:</label>
-        <input type="password" name="newPassword" required/>
-        <br/>
-        <label to="newPasswordConfirm">New Confirm password:</label>
-        <input type="password" name="newPasswordConfirm" required/>
+        <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
 
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />        
-        <input type="submit" value="Change password">
-    </form>
-    <hr><br>
-    <form method="POST" action="/changeProfilePhoto" enctype="multipart/form-data">
-        <label for="image">Profile photo:</label>
-        <input type="file" name="image" required>
+            <div class="feature col">
+              <div class="feature-icon bg-primary bg-gradient">
+                  img
+              </div>
+              <h2>Change password</h2>
+              <hr>
 
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />        
-        <input type="submit" value="Change profile photo">
-    </form>
-    <hr><br>
-    <form method="POST" action="/changeUserData">
-        <label to="username">Username:</label>
-        <input type="text" name="username" value="<%= params.user.username %>" required/>
-        <br/>
-        <label to="email">Email:</label>
-        <input type="email" name="email" value="<%= params.user.email %>" required/>
-        <br/>
+              <form method="POST" action="/changePassword">
+                <div class="form-floating">
+                  <img class="mb-4" src="logo.png" alt="no logo" width="72" height="57">
+                </div>
 
-        <label to="password">Password</label>
-        <input type="password" name="password" required/>
+                <div class="form-floating">
+                  <input type="password" name="password"  class="form-control" required>
+                  <label for="password">Current Password:</label>
+                </div><br>
+                <div class="form-floating">
+                  <input type="password" name="newPassword"  class="form-control"  required>
+                  <label for="newPassword">New Password:</label>
+                </div><br>
+                <div class="form-floating">
+                  <input type="password" name="newPasswordConfirm"  class="form-control" required>
+                  <label for="newPasswordConfirm">New Password Confirm:</label>
+                </div><br>
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                <button class="w-100 btn btn-lg btn-primary" type="submit">Change password</button>
+              </form>
+            </div>
 
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />        
-        <input type="submit" value="Change user data">
-    </form>
+
+            <div class="feature col">
+                <div class="feature-icon bg-primary bg-gradient">
+                    img
+                </div>
+                <h2>Change Profile Photo</h2>
+                <hr>
+  
+                <form method="POST" action="/changeProfilePhoto" enctype="multipart/form-data">
+                  <div class="form-floating">
+                    <img class="mb-4" src="logo.png" alt="no logo" width="72" height="57">
+                  </div>
+  
+                  <div class="form-floating">
+                    <div class="form-post-file-input-box">
+                        <input type="file" name="image" required>
+                    </div>
+                  </div><br>
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>" required/>
+                  <button class="w-100 btn btn-lg btn-primary" type="submit">Change profile photo</button>
+                </form>
+              </div>
+              
+            <div class="feature col">
+                <div class="feature-icon bg-primary bg-gradient">
+                    img
+                </div>
+                <h2>Change password</h2>
+                <hr>
+  
+                <form method="POST" action="/changeUserData">
+                  <div class="form-floating">
+                    <img class="mb-4" src="logo.png" alt="no logo" width="72" height="57">
+                  </div>
+  
+                  <div class="form-floating">
+                    <input type="text" name="username" value="<%= params.user.username %>" class="form-control" required>
+                    <label for="username">Username:</label>
+                  </div><br>
+                  <div class="form-floating">
+                    <input type="email" name="oldEmail" class="form-control" required>
+                    <label for="email">Old email address:</label>
+                  </div><br>
+                  <div class="form-floating">
+                    <input type="email" name="email" class="form-control" required>
+                    <label for="email">New Email:</label>
+                  </div><br>
+                  <div class="form-floating">
+                    <input  type="password" name="password"  class="form-control"  required>
+                    <label to="password">Password</label>
+                  </div><br>
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>" required/>
+                  <button class="w-100 btn btn-lg btn-primary" type="submit">Change User Data</button>
+                </form>
+              </div>
+
+        </div>
+
+
+
+    </div>
+
+    <div class="container px-4 py-5">
+        <h2 class="pb-2 border-bottom">About</h2>
+        <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+
+            <div class="col">
+                <div class="card card-cover h-100 overflow-hidden text-white bg-dark rounded-5 shadow-lg" 
+                style="background-image: url('https://gateway.ipfs.io/ipfs/<%= params.user.profilePhotoCid %>');"> 
+
+
+                  <div class="d-flex flex-column h-100 p-5 pb-3 text-white text-shadow-1">
+                    <h2 class="pt-5 mt-5 mb-4 display-6 lh-1 fw-bold"><%= params.user.username %></h2>
+                    <ul class="d-flex list-unstyled mt-auto">
+                      <li class="me-auto">
+                        <img src="https://github.com/twbs.png" alt="Bootstrap" width="32" height="32" class="rounded-circle border border-white">
+                      </li>
+                      <li class="d-flex align-items-center me-3">
+                        <svg class="bi me-2" width="1em" height="1em"><use xlink:href="#geo-fill"/></svg>
+                        <small>Earth</small>
+                      </li>
+                      <li class="d-flex align-items-center">
+                        <svg class="bi me-2" width="1em" height="1em"><use xlink:href="#calendar3"/></svg>
+                        <small>3d</small>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+              </div>
+
+        </div>
+
+    </div>
+
+    <div class="container px-4 py-5">
+        <h2 class="pb-2 border-bottom">Uploads</h2>
+        <div class="row g-4 py-5 row-cols-1 row-cols-lg-1">
+
+        <%if(params?.user?.files?.length > 0) { %>
+            <p>Meus arquivos</p>
+            <ul>
+                <%for(const f of params.user.files) { %> 
+                    <li>
+                        <%= f.originalFileName %>
+                        with cid: <%= f.cid %>
+                    </li>
+                <% }  %>
+            </ul>
+        <% } else { %>
+            <p>You haven't uploaded any file yet</p>
+        
+        <% }  %>
+
+        </div>
+    </div>
 
 <% }  %>
     
-<%if(params?.user?.files?.length > 0) { %>
-    <p>Meus arquivos</p>
-    <ul>
-        <%for(const f of params.user.files) { %> 
-            <li>
-                <%= f.originalFileName %>
-                with cid: <%= f.cid %>
-            </li>
-        <% }  %>
-    </ul>
-<% }  %>
+
         
 <%if(params?.user?.userpendinguploads?.length > 0) { %>
     <p>Meus arquivos pendentes de upload</p>
@@ -68,3 +168,4 @@
     </ul>
 
 <% }  %>
+</main>

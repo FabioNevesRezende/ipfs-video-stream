@@ -5,6 +5,10 @@ terms of use
 
 busca por videos/por tags
 
+captchas
+
+validação mimetype videos e tratamento de erros ffmpeg
+
     triggers para deletar tokens invalidos, usuarios inativos, etc (x)
 
     revisar try/catchs (x)
