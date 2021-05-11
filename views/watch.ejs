@@ -1,11 +1,96 @@
-<p>Hash: <%= params.file.cid %></p>
-<video id="video" controls></video>
-<button onclick="gotoRandomVideoPage()">Random</button>
-<form method="POST" action="/deleteFile">
-    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-    <input type="hidden" name="cid" value="<%= params.file.cid %>" />
-    <input type="submit" value="Delete File">
-</form>
+<br>
+<div class="row">
+    <div class="col"></div>
+    <div class="col-8">
+        
+        <p>Hash: <%= params.file.cid %></p>
+
+
+        <div class="row">
+                <video id="video" width="100%" height="80%" controls autoplay></video>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col">
+
+                <h2><%= params.file.originalFileName %></h2>
+            </div>
+            <div class="col">
+            <%if(params?.user?.id === params?.file?.userId){%>
+                <form method="POST" action="/deleteFile" class="float-end">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                    <input type="hidden" name="cid" value="<%= params.file.cid %>" />
+                    <button type="submit" class="btn btn-danger">Delete file</button>
+                </form>
+            <% } %>
+            </div>  
+        </div>
+
+        <div class="row-cols-2">
+            <div class="card">
+                <div class="card-body">
+                    Video description
+                </div>
+            </div>
+        </div>
+        <br>
+
+
+        <div class="row">
+            <div class="col-6">
+                <form method="POST" action="/comment">
+                    <div class="row">
+                        <textarea name="commentText" class="form-control" maxlength="512" style="height: 125px;"></textarea>
+                    </div><br>
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                    <input type="hidden" name="cid" value="<%= params.file.cid %>" />
+                    <div class="row">
+                        <button type="submit" class="btn btn-primary">Comment</button>
+                    </div>
+                </form>    
+            </div>
+            <div class="col"></div>
+        </div>
+        <br><hr>
+
+                    Video description
+        <%if(params?.file?.comments?.length > 0) { %>  
+            <div class="row-cols-2">
+                <%for(const comment of params.file.comments) { %> 
+                    <div class="card">
+                        <div class="card-body">
+                            <p><%= comment.text %></p>
+                            <p><i>By <%= comment.user.username %></i>
+                                <%if(comment.user.id === params?.user?.id){%>
+                                <button type="submit" class="btn btng-warning">
+                                    <i class="fa fa-trash" aria-hidden="true"></i>
+                                </button>
+                                <% }  %>
+                            </p>
+
+                            <%if(comment.user.userId === params?.user?.id){%>
+                            <form action="/deleteComment" method="POST" id="formDeleteComment">
+                                <input type="hidden" name="commentId" value="<%= comment.id %>">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                            </form>
+                            <% }  %>
+
+                        </div>
+                    </div>
+                <% }  %>
+            </div>
+
+        <% }  %>
+    </div>
+
+    <div class="col">
+        ffdjkhfdjhkjhfdkjhkjkh
+    </div>
+</div>
+<br><br>
+
+
+
 <script src="https://cdn.jsdelivr.net/npm/hlsjs-ipfs-loader@0.3.0/dist/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@0.14.17"></script>
 <script>
@@ -27,27 +112,3 @@
     }
     })
 </script>
-
-<form method="POST" action="/comment">
-    <textarea name="commentText" maxlength="512"></textarea>
-    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-    <input type="hidden" name="cid" value="<%= params.file.cid %>" />
-    <input type="submit" value="Comment">
-</form>
-
-
-<%if(params.file?.comments && params.file?.comments.length > 0) { %>  
-    <ul>
-    <%for(const comment of params.file.comments) { %> 
-        <li>
-            <%= comment.text %>
-            By <%= comment.user.username %>
-            <form action="/deleteComment" method="POST">
-                <input type="submit" value="Delete">
-                <input type="hidden" name="commentId" value="<%= comment.id %>">
-                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-            </form>
-        </li>
-    <% }  %>
-    </ul>
-<% }  %>

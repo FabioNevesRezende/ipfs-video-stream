@@ -205,7 +205,8 @@ async function main () {
             if(f){
                 return res.render('main', {page: 'watch', params: { 
                     file: f,
-                    csrfToken: req.csrfToken()
+                    csrfToken: req.csrfToken(),
+                    user: req.user
                 }})
             }
             return res.status(400).render('main', { page: 'error', params: { errorMessage: 'File not indexed' }});
@@ -267,7 +268,7 @@ async function main () {
 
     app.get('/upload', AuthMiddleware, (req, res) => {
         try{
-            res.render('main', {page: 'upload', params: { csrfToken: req.csrfToken() } })
+            res.render('main', {page: 'upload', params: { csrfToken: req.csrfToken(), user: req.user } })
         } catch(err){
             console.log('app.get/upload error ' + err)
             return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});

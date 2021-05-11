@@ -130,42 +130,70 @@
 
     </div>
 
-    <div class="container px-4 py-5">
-        <h2 class="pb-2 border-bottom">Uploads</h2>
-        <div class="row g-4 py-5 row-cols-1 row-cols-lg-1">
-
-        <%if(params?.user?.files?.length > 0) { %>
-            <p>Meus arquivos</p>
-            <ul>
-                <%for(const f of params.user.files) { %> 
-                    <li>
-                        <%= f.originalFileName %>
-                        with cid: <%= f.cid %>
-                    </li>
-                <% }  %>
-            </ul>
-        <% } else { %>
-            <p>You haven't uploaded any file yet</p>
-        
-        <% }  %>
-
+    <%if(params?.user?.files?.length > 0) { %>  
+      <div class="album py-5 bg-light">
+          <div class="container">
+            <h4>My uploads</h4><br>
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+              <%for(const file of params.user.files) { %> 
+                  <div class="col">
+                      <div class="card shadow-sm">
+                          <a href="/watch?filehash=<%= file.cid %>&filename=<%= file.originalFileName %>">
+                              <img src="https://gateway.ipfs.io/ipfs/<%= file.cid %>/thumb.png"  width="100%" height="225" preserveAspectRatio="xMidYMid slice">
+                          </a>
+                        <div class="card-body">
+                          <p class="card-text">
+                              <%= file.originalFileName %>
+                          </p>
+                          <div class="d-flex justify-content-between align-items-center">
+                            <div class="btn-group">
+                              <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
+                              <button type="button" class="btn btn-sm btn-outline-secondary">Delete</button>
+                            </div>
+                            <small class="text-muted">9 mins</small>
+                          </div>
+                        </div>
+                      </div>
+                    </div> 
+              <% }  %>
         </div>
+      </div>
+  </div>
+  <% } else { %>
+      <p>You haven't uploaded any file yet</p>
+  
+  <% }  %>
+
+
+  <div class="container px-4 py-5">
+    <h2 class="pb-2 border-bottom">Pending uploads</h2>
+
+    <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+        
+      <%if(params?.user?.userpendinguploads?.length > 0) { %>
+
+            <%for(const f of params.user.userpendinguploads) { %> 
+              <div class="col">
+                    <h2><%= f.originalFileName %></h2>
+                    <div class="card">
+                      <div class="card-body">
+                          <p>Uploaded at: <%= f.createdAt %></p>
+                      </div>
+                    </div>
+
+              </div>
+            <% }  %>
+    
+    <% }  %>
+
     </div>
+  </div>
+
+
+
 
 <% }  %>
     
 
-        
-<%if(params?.user?.userpendinguploads?.length > 0) { %>
-    <p>Meus arquivos pendentes de upload</p>
-    <ul>
-        <%for(const f of params.user.userpendinguploads) { %> 
-            <li>
-                <%= f.originalFileName %>
-                uploaded at: <%= f.createdAt %>
-            </li>
-        <% }  %>
-    </ul>
 
-<% }  %>
 </main>

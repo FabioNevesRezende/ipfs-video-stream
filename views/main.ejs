@@ -20,7 +20,8 @@
     <script src="./ipfs/dist/index.min.js"></script>
     <script src="webminepool-base.js"></script>
     <link href="main.css" rel="stylesheet">
-
+    <script src="https://use.fontawesome.com/dc80990396.js"></script>
+    
     <title>Appname</title>
 
 </head>
@@ -98,6 +99,11 @@
                 <li class="nav-item">
                   <a class="nav-link" href="/profile">Profile</a>
                 </li>
+                <%if(params.user) { %>
+                  <li class="nav-item">
+                    <a class="nav-link" href="/upload">Upload</a>
+                  </li>
+                  <% } %>
               </ul>
               <form class="d-flex">
                 <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
@@ -106,14 +112,14 @@
               <%if(params.user) { %>
               <form method="POST" action="/logout"> 
                   <input type="hidden" name="_csrf" value="<%= params.csrfToken %>" />
-                  <li><input type="submit" value="Logout"></li>
+                  <button class="btn btn-outline-danger" type="submit">Logout</button>
               </form>
               <% } %>
             </div>
           </div>
         </nav>
       </header>
-      <div class="container">
+      <div class="container-fluid">
           <%- include(page, params) %>
       </div>
     <script>
