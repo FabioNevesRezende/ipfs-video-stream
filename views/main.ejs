@@ -105,12 +105,13 @@
                   </li>
                   <% } %>
               </ul>
-              <form class="d-flex">
-                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+              <form  method="POST" action="/search" class="d-flex">
+                <input class="form-control me-2" name="term" type="search" placeholder="Search" aria-label="Search" required>
+                <input type="hidden" name="_csrf" value="<%= params.csrfToken %>" />
                 <button class="btn btn-outline-success" type="submit">Search</button>
               </form>
               <%if(params.user) { %>
-              <form method="POST" action="/logout"> 
+              <form method="POST" action="/logout" class="d-flex"> 
                   <input type="hidden" name="_csrf" value="<%= params.csrfToken %>" />
                   <button class="btn btn-outline-danger" type="submit">Logout</button>
               </form>

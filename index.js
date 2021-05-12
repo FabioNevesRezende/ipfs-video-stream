@@ -29,6 +29,7 @@ const validateFileComment = require('./middleware/validateFileComment')
 const validateDeleteComment = require('./middleware/validateDeleteComment')
 const validateDeleteFile = require('./middleware/validateDeleteFile')
 const validateChangeUserData = require('./middleware/validateChangeUserData')
+const validateSearch = require('./middleware/validateSearch')
 
 async function main () {
     const repoPath = '.ipfs-node-main'
@@ -60,10 +61,14 @@ async function main () {
     app.use(handleCsrfError)
 
     const goHome = async (req, res, args) => {
-        const vids = await File.getVideosHomePage();
-        console.log('vids')
-        console.log(JSON.stringify(vids))
-        return res.render('main', {page: 'home', params: {...args, csrfToken: req.csrfToken(), vids }})
+        if(!args.vids){
+            const vids = await File.getVideosHomePage();
+            console.log('vids')
+            console.log(JSON.stringify(vids))
+            args.vids = vids;
+        }
+
+        return res.render('main', {page: 'home', params: {...args, csrfToken: req.csrfToken() }})
 
     } 
 
@@ -280,6 +285,7 @@ async function main () {
             const file = req.files.file
             const fileName = req.body.fileName
             const categories = req.body.categories
+            const description = req.body.description
 
             file.mv(fileName, async (err) => {
                 if(err){
@@ -332,8 +338,10 @@ async function main () {
                             dirCid = dirStat.cid.toString()
                             console.log(`dir cid: ${dirCid}`)
                             await pinFile(dirCid)
-                            await File.persist({originalFileName: fileName, cid: dirCid, userId: req.user.id, description: req.body.description})
-                            for(const category of categories.split(',')){
+                            const newFile = {originalFileName: fileName, cid: dirCid, userId: req.user.id, description}
+                            await File.persist(newFile)
+                            File.indexFile({...newFile, categories: categories})
+                            for(const category of categories.split(' ')){
                                 await File.associate(category.trim(), dirCid)
                             }
 
@@ -482,6 +490,24 @@ async function main () {
             console.log('app.post/changeUserData error ' + err)
             return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Error processing request' }});
         }
+    })
+
+    app.post('/search', validateSearch, async(req,res) => {
+        try{
+            const term = req.body.term
+
+            const vids = await File.videosFromTerm(term);
+            console.log('vids')
+            console.log(JSON.stringify(vids))
+            goHome(req, res, {vids})
+
+        }catch(err){
+            console.log('app.post/changeUserData error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Error processing request' }});
+        }
+
+
+
     })
 
     const addFile = async (fileName, wrapWithDirectory=false) => {

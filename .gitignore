@@ -5,3 +5,4 @@ package-lock.json
 .env
 *.css.map
 public/main.css
+persistence/fileIndex.json

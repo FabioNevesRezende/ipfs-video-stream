@@ -4,7 +4,10 @@ const OP = Sequelize.Op;
 const bcrypt = require('bcrypt');
 const saltRounds = 15;
 var jwt = require('jsonwebtoken');
+const fs = require('fs');
+const fileIndex = require('./fileIndex')
  
+
 const User = database.define('user', {
     id: {
       type: Sequelize.INTEGER,
@@ -542,6 +545,59 @@ File.getByCid = async(cid) => {
   }catch(err){
     console.log('File.getByCid error ' + err)
   }
+}
+
+File.indexFile = ({originalFileName,cid,description,categories}) => {
+
+  for(const c of categories.split(' ')){
+    if(fileIndex[c]){
+      fileIndex[c].push(cid)
+    } else {
+      fileIndex[c] = []
+      fileIndex[c].push(cid)
+    }
+  }
+  for(const c of originalFileName.split(' ')){
+    if(fileIndex[c]){
+      fileIndex[c].push(cid)
+    } else {
+      fileIndex[c] = []
+      fileIndex[c].push(cid)
+    }
+  }
+
+  for(const c of description.split(' ')){
+    if(fileIndex[c]){
+      fileIndex[c].push(cid)
+    } else {
+      fileIndex[c] = []
+      fileIndex[c].push(cid)
+    }
+  }
+
+
+  fs.writeFile('persistence/fileIndex.json',  JSON.stringify(fileIndex), (err) => {
+    if (err) {
+        throw err;
+    }
+    console.log("JSON data is saved to fileIndex.json");
+  });
+
+}
+
+File.videosFromTerm = async (term) => {
+  let cids = []
+  for(const w of term.split(' ')){
+    if(fileIndex[w]){
+      for(const cid of fileIndex[w])
+        cids.push(cid)
+    }
+  }
+
+  const fileTags = await Tag.findAll({ include: [{ model: File, where: {cid: cids} }]});
+
+  return fileTags;
+
 }
 
 User.withProfileData = async (userId) => {
