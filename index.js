@@ -332,7 +332,7 @@ async function main () {
                             dirCid = dirStat.cid.toString()
                             console.log(`dir cid: ${dirCid}`)
                             await pinFile(dirCid)
-                            await File.persist(fileName, dirCid, req.user.id)
+                            await File.persist({originalFileName: fileName, cid: dirCid, userId: req.user.id, description: req.body.description})
                             for(const category of categories.split(',')){
                                 await File.associate(category.trim(), dirCid)
                             }

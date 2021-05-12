@@ -481,6 +481,8 @@ Comment.removeById = async(id) => {
 
 Tag.belongsToMany(File, { through: Filetag });
 
+File.belongsToMany(Tag, { through: Filetag })
+
 File.belongsTo(User);
 
 User.hasMany(File);
@@ -503,7 +505,7 @@ File.associate = async (name,cid) => {
   }
 } 
 
-File.persist = async (originalFileName,cid,userId,size=undefined,mimetype=undefined,description=undefined) => {
+File.persist = async ({originalFileName,cid,userId,size=undefined,mimetype=undefined,description=undefined}) => {
     console.log('persistFile: ' + originalFileName)
   
     try{
@@ -536,7 +538,7 @@ File.delete = async(cid) => {
 
 File.getByCid = async(cid) => {
   try{
-    return await File.findOne({ where: { cid }, include: [{model: Comment, include: [{model: User}] }, {model: FileReaction}] })
+    return await File.findOne({ where: { cid }, include: [{model: Comment, include: [{model: User}] }, {model: FileReaction}, {model: Tag}] })
   }catch(err){
     console.log('File.getByCid error ' + err)
   }

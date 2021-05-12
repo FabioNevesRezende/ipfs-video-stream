@@ -3,17 +3,20 @@
     <div class="col"></div>
     <div class="col-8">
         
-        <p>Hash: <%= params.file.cid %></p>
+        <p>Hash: <%= params?.file?.cid %></p>
 
 
         <div class="row">
-                <video id="video" width="100%" height="80%" controls autoplay></video>
+            <video id="video" width="100%" height="80%" controls autoplay></video>
         </div>
         <br>
+            <%for(const tag of params?.file?.tags){%>
+                <span class="badge bg-secondary">#<%= tag.name %></span>
+            <%}%>
+
         <div class="row">
             <div class="col">
-
-                <h2><%= params.file.originalFileName %></h2>
+                <h2><%= params?.file?.originalFileName %></h2>
             </div>
             <div class="col">
             <%if(params?.user?.id === params?.file?.userId){%>
@@ -29,7 +32,7 @@
         <div class="row-cols-2">
             <div class="card">
                 <div class="card-body">
-                    Video description
+                    <%= params?.file?.description %>
                 </div>
             </div>
         </div>
@@ -53,7 +56,6 @@
         </div>
         <br><hr>
 
-                    Video description
         <%if(params?.file?.comments?.length > 0) { %>  
             <div class="row-cols-2">
                 <%for(const comment of params.file.comments) { %> 
@@ -84,7 +86,7 @@
     </div>
 
     <div class="col">
-        ffdjkhfdjhkjhfdkjhkjkh
+        <!--related videos-->
     </div>
 </div>
 <br><br>
