@@ -29,7 +29,26 @@
         </label>
       </div>
       <button class="w-100 btn btn-lg btn-primary" type="submit">Register</button>
-      <a href="/newSingupToken">Send new confirmation email</a>
+      <a href="/newSingupToken">Send new confirmation email</a><br><br>
+      <p>By registering, the user agrees with Appname's
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#termsModal">
+          terms of use
+        </button>
       <p class="mt-5 mb-3 text-muted">&copy; 2017–2021</p>
     </form>
   </main>
+  <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Terms of use</h5>
+        </div>
+        <div class="modal-body">
+          <%- include('termsText') %>    
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I agree</button>
+        </div>
+      </div>
+    </div>
+  </div>

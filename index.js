@@ -510,6 +510,16 @@ async function main () {
 
     })
 
+    app.get('/terms', getLoggedUser, async (req, res) => {
+        try{
+            return res.render('main', {page: 'terms', params: {} })
+            
+        } catch(err){
+            console.log('app.get/terms error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+        }
+    })
+
     const addFile = async (fileName, wrapWithDirectory=false) => {
         const file = fs.readFileSync(fileName)
         const fileAdded = await ipfs.add({path: fileName, content: file}, { wrapWithDirectory })

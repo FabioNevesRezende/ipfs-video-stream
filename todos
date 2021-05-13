@@ -1,11 +1,11 @@
 
 user interface bonita (x)
 
-terms of use 
+terms of use (x)
 
 busca por videos/por tags (x)
 
-captchas
+captchas (deixar para cloudflare)
 
 validação mimetype videos e tratamento de erros ffmpeg
 
