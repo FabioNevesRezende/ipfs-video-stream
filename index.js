@@ -30,6 +30,7 @@ const validateDeleteComment = require('./middleware/validateDeleteComment')
 const validateDeleteFile = require('./middleware/validateDeleteFile')
 const validateChangeUserData = require('./middleware/validateChangeUserData')
 const validateSearch = require('./middleware/validateSearch')
+const validateDeleteUser = require('./middleware/validateDeleteUser')
 
 async function main () {
     const repoPath = '.ipfs-node-main'
@@ -520,6 +521,26 @@ async function main () {
         }
     })
 
+    app.post('/deleteUser', AuthMiddleware, validateDeleteUser, async (req, res) => {
+        try{
+            const { user, cookies: { authToken: authToken } } = req
+        
+            if (user?.id == req?.body?.id && authToken) {
+                await User.logout(authToken);
+                await User.remove(req.body.id, req.body.password)
+            }
+            if(req?.user?.adminLevel > 0){
+                await User.remove(req.body.id)
+            }
+
+            return res.redirect('/')
+
+        } catch(err){
+            console.log('app.post/deleteUser error ' + err)
+            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+        }
+    })
+
     const addFile = async (fileName, wrapWithDirectory=false) => {
         const file = fs.readFileSync(fileName)
         const fileAdded = await ipfs.add({path: fileName, content: file}, { wrapWithDirectory })
@@ -589,12 +610,7 @@ async function main () {
     
     })
 
-    setInterval(doDbMaintenance, 864000)
-/* 
-    const bufferedContents = await toBuffer(ipfs.cat('QmWCscor6qWPdx53zEQmZvQvuWQYxx1ARRCXwYVE4s9wzJ')) // returns a Buffer
-    const stringContents = bufferedContents.toString() // returns a string
-    console.log(`QmWCscor6qWPdx53zEQmZvQvuWQYxx1ARRCXwYVE4s9wzJ: ${stringContents}`) */
-    
+    setInterval(doDbMaintenance, 864000)    
 }
 
 main()

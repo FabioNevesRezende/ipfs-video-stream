@@ -274,6 +274,29 @@ User.updateData = async (user, password) => {
   return false
 }
 
+User.remove = async(id, password=undefined) => {
+  try{
+    const user = await User.findOne({where: {id}})
+
+    if (password && bcrypt.compareSync(password, user.password)) {
+      console.log(`Removing user ${user.username} with verified password`)
+      await user.destroy()
+      return true;
+    }
+    if(!password) {
+      console.log(`Removing user ${user.username} without verify password`)
+      await user.destroy()
+      return true;
+    }
+    console.log('User.remove wrong password')
+    return false
+
+  }catch(err){
+    console.log('User.remove error: ' + err)
+  }
+
+}
+
 const AuthToken = database.define('authtoken', {
     token: {
         type: Sequelize.STRING(512),
