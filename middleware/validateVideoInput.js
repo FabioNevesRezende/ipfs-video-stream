@@ -11,10 +11,18 @@ module.exports = [
             return res.status(400).render('main', {page: 'error', params: { errorMessage: 'Invalid Input' }});
         }
 
-        if(!req.files || !req.files.file){
+        if(!req?.files?.file){
             return res.status(400).render('main', {page: 'error', params: { errorMessage: 'Invalid Input, there must be a file input' }});
 
         }
+
+        const availableMimes = require('./availableMimes.json')
+        const fileMime = req.files.file.mimetype
+        if(!availableMimes.includes(fileMime)){
+            return res.status(400).render('main', {page: 'error', params: { errorMessage: 'Invalid file type' }});
+        }
+
+
         next()
     }   
 ]
