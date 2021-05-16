@@ -19,7 +19,7 @@
     <link href="main.css" rel="stylesheet">
     <script src="https://use.fontawesome.com/dc80990396.js"></script>
     
-    <title>Appname</title>
+    <title><%= params?.appname %></title>
 
 </head>
 <body class="d-flex flex-column h-100">
@@ -81,7 +81,7 @@
         <!-- Fixed navbar -->
         <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
           <div class="container-fluid">
-            <a class="navbar-brand" href="/">Appname</a>
+            <a class="navbar-brand" href="/"><%= params?.appname %></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon"></span>
             </button>
@@ -130,7 +130,7 @@
         <hr><div class="row">
           <div class="col"></div>
           <div class="col-8 text-center">
-            <p class="mt-5 mb-3 text-muted">Appname &copy; 2021</p><br>
+            <p class="mt-5 mb-3 text-muted"><%= params?.appname %> &copy; 2021</p><br>
           </div>
           <div class="col"></div>
         </div>

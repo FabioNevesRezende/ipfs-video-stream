@@ -61,6 +61,10 @@ async function main () {
     app.use(csrfMiddleware);
     app.use(handleCsrfError)
 
+    const goPage = async(page, req, res, args) => {
+        return res.render('main', {page, params: {...args, appname: process.env.APPNAME }})
+    }
+
     const goHome = async (req, res, args) => {
         if(!args.vids){
             const vids = await File.getVideosHomePage();
@@ -69,13 +73,13 @@ async function main () {
             args.vids = vids;
         }
 
-        return res.render('main', {page: 'home', params: {...args, csrfToken: req.csrfToken() }})
+        return goPage('home', req, res, {...args, csrfToken: req.csrfToken() })
 
     } 
 
     const goProfile = async (req, res, args) => {
         const user = await User.withProfileData(req.user.id)
-        return res.render('main', {page: 'profile', params: {...args, csrfToken: req.csrfToken(), user }})
+        return goPage('profile', req, res, {...args, csrfToken: req.csrfToken(), user })
     }
 
     app.get('/randomVideos', async(req,res) => {
@@ -89,7 +93,7 @@ async function main () {
             return goHome(req, res, {user: req.user})
         } catch(err){
             console.log('app.get/ error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
     })
 
@@ -98,10 +102,10 @@ async function main () {
             if(req.user){
                 return goHome(req, res, {user: req.user})
             }
-            return res.render('main', {page: 'singup', params: {csrfToken: req.csrfToken()}})
+            return goPage('singup', req, res, {csrfToken: req.csrfToken()})
         } catch(err){
             console.log('app.get/singup error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
     })
 
@@ -113,7 +117,7 @@ async function main () {
             return goProfile(req, res, {})
         } catch(err){
             console.log('app.get/profile error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
     })
     
@@ -125,7 +129,7 @@ async function main () {
             else return goHome(req, res, {status: 'Error changing user password'})
         } catch(err){
             console.log('app.post/changePassword error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
     })
 
@@ -134,10 +138,10 @@ async function main () {
             if(req.user){
                 return goHome(req, res, {user: req.user})
             }
-            res.render('main', {page: 'login', params: {csrfToken: req.csrfToken()}})
+            return goPage('login', req, res, {csrfToken: req.csrfToken()})
         } catch(err){
             console.log('app.get/login error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
     })
 
@@ -147,7 +151,7 @@ async function main () {
             const { username, password } = req.body;
 
             if (!username || !password) {
-                return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid request' }});
+                return goPage('error', req, res, { errorMessage: 'Invalid request' })
             }
 
             let user = await User.authenticate(username, password)
@@ -163,7 +167,7 @@ async function main () {
 
         } catch (err) {
             console.log('app.post/login error ' + err)
-            return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid credentials' }});
+            return goPage('error', req, res, { errorMessage: 'Invalid credentials' })
         }
 
     })
@@ -177,10 +181,10 @@ async function main () {
                 return goHome(req, res, {})
             }
 
-            return res.status(400).render('main', { page: 'error', params: { errorMessage: 'Invalid request' }});
+            return goPage('error', req, res, { errorMessage: 'Invalid request' })
         } catch(err){
             console.log('app.post/logout error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
 
       });
@@ -200,7 +204,7 @@ async function main () {
             
         } catch(err) {
             console.log('app.post/singup error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Invalid credentials' }});
+            return goPage('error', req, res, { errorMessage: 'Invalid credentials' })
         }
 
     })
@@ -209,17 +213,18 @@ async function main () {
         try{
             const f = await File.getByCid(req.query.filehash)
             if(f){
-                return res.render('main', {page: 'watch', params: { 
+                return goPage('watch', req, res, { 
                     file: f,
                     csrfToken: req.csrfToken(),
                     user: req.user
-                }})
+                })
+
             }
-            return res.status(400).render('main', { page: 'error', params: { errorMessage: 'File not indexed' }});
+            return goPage('error', req, res, { errorMessage: 'File not indexed' })
             
         } catch(err){
             console.log('app.get/watch error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
     })
 
@@ -237,17 +242,17 @@ async function main () {
                 
         } catch(err){
             console.log('app.get/validateSingupToken error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
 
     })
 
     app.get('/newSingupToken', async (req, res) => {
         try{
-            res.render('main', {page: 'newToken', params: { csrfToken: req.csrfToken() } })
+            return goPage('newToken', req, res, { csrfToken: req.csrfToken() })
         } catch(err){
             console.log('app.get/newSingupToken error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
     })
 
@@ -267,17 +272,17 @@ async function main () {
             }
         } catch(err){
             console.log('app.post/newSingupToken error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
 
     })
 
     app.get('/upload', AuthMiddleware, (req, res) => {
         try{
-            res.render('main', {page: 'upload', params: { csrfToken: req.csrfToken(), user: req.user } })
+            return goPage('upload', req, res, { csrfToken: req.csrfToken(), user: req.user })
         } catch(err){
             console.log('app.get/upload error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
     })
 
@@ -369,13 +374,13 @@ async function main () {
     app.get('/forgotPassword', (req,res) => {
         try{
             if(req.query.token){
-                res.render('main', {page: 'forgotPassword', params: {csrfToken: req.csrfToken(), token: req.query.token} })
+                return goPage('forgotPassword', req, res, {csrfToken: req.csrfToken(), token: req.query.token})
             } else {
-                res.render('main', {page: 'forgotPassword', params: {csrfToken: req.csrfToken()} })
+                return goPage('forgotPassword', req, res, {csrfToken: req.csrfToken()})
             }
         } catch(err){
             console.log('app.get/forgotPassword error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
 
     })
@@ -387,7 +392,7 @@ async function main () {
             return goHome(req, res, {})
         } catch(err){
             console.log('app.post/requestResetPassword error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
     })
 
@@ -401,7 +406,7 @@ async function main () {
             }
         } catch(err){
             console.log('app.post/resetPassword error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
 
     })
@@ -424,7 +429,7 @@ async function main () {
             })
         } catch(err){
             console.log('app.post/changeProfilePhoto error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
 
 
@@ -442,7 +447,7 @@ async function main () {
             
         } catch(err) {
             console.log('app.post/comment error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Error creating new comment' }});
+            return goPage('error', req, res, { errorMessage: 'Error creating new comment' })
         }
     })
 
@@ -458,7 +463,7 @@ async function main () {
 
         } catch(err){
             console.log('app.post/deleteComment error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Error deleting comment' }});
+            return goPage('error', req, res, { errorMessage: 'Error deleting comment' })
         }
     })
 
@@ -473,7 +478,7 @@ async function main () {
             throw new Error("Could not delete file, invalid userId")
         }catch(err){
             console.log('app.post/deleteFile error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Error deleting file' }});
+            return goPage('error', req, res, { errorMessage: 'Error deleting file' })
         }
     })
 
@@ -489,7 +494,7 @@ async function main () {
             throw new Error("Could not update user data")
         }catch(err){
             console.log('app.post/changeUserData error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Error processing request' }});
+            return goPage('error', req, res, { errorMessage: 'Error processing request' })
         }
     })
 
@@ -504,7 +509,7 @@ async function main () {
 
         }catch(err){
             console.log('app.post/changeUserData error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Error processing request' }});
+            return goPage('error', req, res, { errorMessage: 'Error processing request' })
         }
 
 
@@ -513,11 +518,11 @@ async function main () {
 
     app.get('/terms', getLoggedUser, async (req, res) => {
         try{
-            return res.render('main', {page: 'terms', params: {} })
+            return goPage('terms', req, res, {})
             
         } catch(err){
             console.log('app.get/terms error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
     })
 
@@ -537,7 +542,7 @@ async function main () {
 
         } catch(err){
             console.log('app.post/deleteUser error ' + err)
-            return res.status(500).render('main', { page: 'error', params: { errorMessage: 'Internal error' }});
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
     })
 
