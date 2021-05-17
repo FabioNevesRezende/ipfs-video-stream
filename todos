@@ -22,6 +22,9 @@ profile/user
     control user uploads (x)
     last login (x)
 
+tests
+hash mysql connection string 
+
 production 
     remunerção
 
