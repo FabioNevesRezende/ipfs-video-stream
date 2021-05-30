@@ -26,9 +26,11 @@
                         </p>
                         <div class="d-flex justify-content-between align-items-center">
                           <div class="btn-group">
-                            <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
+                            <a href="/user/<%= file.user.id %>" type="button" class="btn btn-sm btn-outline-secondary"><%= file.user.username %></a>
                           </div>
-                          <small class="text-muted">9 mins</small>
+                          <%if(file.duration){%>
+                          <small class="text-muted"><%= file.duration %>s</small>
+                          <%}%>
                         </div>
                       </div>
                     </div>

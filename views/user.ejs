@@ -1,0 +1,77 @@
+<br><br>
+<main>
+<%if(params.user) { %>   
+    <div class="container px-4 py-5">
+        <h2 class="pb-2 border-bottom"><%= params.user.username %></h2>
+
+    </div>
+
+    <div class="container px-4 py-5">
+        <h2 class="pb-2 border-bottom">About</h2>
+        <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+
+            <div class="col">
+                <div class="card card-cover h-100 overflow-hidden text-white bg-dark rounded-5 shadow-lg" 
+                style="background-image: url('https://gateway.ipfs.io/ipfs/<%= params.user.profilePhotoCid %>');"> 
+
+
+                  <div class="d-flex flex-column h-100 p-5 pb-3 text-white text-shadow-1">
+                    <h2 class="pt-5 mt-5 mb-4 display-6 lh-1 fw-bold"><%= params.user.username %></h2>
+                    <ul class="d-flex list-unstyled mt-auto">
+                      <li class="me-auto">
+                        <img src="https://github.com/twbs.png" alt="Bootstrap" width="32" height="32" class="rounded-circle border border-white">
+                      </li>
+                      <li class="d-flex align-items-center me-3">
+                        <svg class="bi me-2" width="1em" height="1em"><use xlink:href="#geo-fill"/></svg>
+                        <small>Earth</small>
+                      </li>
+                      <li class="d-flex align-items-center">
+                        <svg class="bi me-2" width="1em" height="1em"><use xlink:href="#calendar3"/></svg>
+                        <small>3d</small>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+              </div>
+
+        </div>
+
+    </div>
+
+    <%if(params?.user?.files?.length > 0) { %>  
+      <div class="album py-5 bg-light">
+          <div class="container">
+            <h4><%= params.user.username %> uploads</h4><br>
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+              <%for(const file of params.user.files) { %> 
+                  <div class="col">
+                      <div class="card shadow-sm">
+                          <a href="/watch?filehash=<%= file.cid %>&filename=<%= file.originalFileName %>">
+                              <img src="https://gateway.ipfs.io/ipfs/<%= file.cid %>/thumb.png"  width="100%" height="225" preserveAspectRatio="xMidYMid slice">
+                          </a>
+                        <div class="card-body">
+                          <p class="card-text">
+                              <%= file.originalFileName %>
+                          </p>
+                          <div class="d-flex justify-content-between align-items-center">
+                            <%if(file.duration){%>
+                            <small class="text-muted"><%= file.duration %>s</small>
+                            <%}%>
+                          </div>
+                        </div>
+                      </div>
+                    </div> 
+              <% }  %>
+        </div>
+      </div>
+  </div>
+  <% } else { %>
+      <p>No uploaded files</p>
+  
+  <% }  %>
+
+<% }  %>
+    
+</main>
+

@@ -372,6 +372,10 @@ const File = database.define('file', {
         type: Sequelize.TEXT,
         allowNull: true
     },
+    duration: {
+        type: Sequelize.TEXT,
+        allowNull: true
+    },
     size: {
         type: Sequelize.INTEGER,
         allowNull: true
@@ -531,25 +535,18 @@ File.associate = async (name,cid) => {
   }
 } 
 
-File.persist = async ({originalFileName,cid,userId,size=undefined,mimetype=undefined,description=undefined}) => {
-    console.log('persistFile: ' + originalFileName)
+File.persist = async (args) => {
+    console.log('persistFile: ' + args.originalFileName)
   
     try{
-    const file1 = await File.create({
-        originalFileName,
-        cid,
-        userId,
-        size,
-        mimetype,
-        description
-    }) 
+      const file1 = await File.create(args) 
   } catch (err){
     console.log('File.persist error ' + err)
   }
 };
 
 File.getVideosHomePage = async() => {
-  const fileTags = await Tag.findAll({include: [{ model: File }]});
+  const fileTags = await Tag.findAll({include: [{ model: File, include: [{model: User}] }]});
 
   return fileTags;
 };
@@ -617,7 +614,7 @@ File.videosFromTerm = async (term) => {
     }
   }
 
-  const fileTags = await Tag.findAll({ include: [{ model: File, where: {cid: cids} }]});
+  const fileTags = await Tag.findAll({ include: [{ model: File, include: [{model: User}], where: {cid: cids} }]});
 
   return fileTags;
 

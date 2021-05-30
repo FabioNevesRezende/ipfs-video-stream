@@ -31,6 +31,7 @@ const validateDeleteFile = require('./middleware/validateDeleteFile')
 const validateChangeUserData = require('./middleware/validateChangeUserData')
 const validateSearch = require('./middleware/validateSearch')
 const validateDeleteUser = require('./middleware/validateDeleteUser')
+const validateGetUser = require('./middleware/validateGetUser')
 
 async function main () {
     const repoPath = '.ipfs-node-main'
@@ -305,8 +306,14 @@ async function main () {
                     fs.mkdirSync(tempDir)
                 } catch(err){
                     if(err.code === 'EEXIST')
-                        console.log('file already exists')
+                        console.log(`file ${tempDir} already exists`)
                 }
+
+                ffmpeg.ffprobe(fileName, (error, metadata) => {
+                    file.duration = metadata.format.duration;
+                    console.log(`Video duration: ${file.duration}`);
+                });
+
                 await ffmpeg(fileName).addOptions([ 
                     '-hls_time 10',
                     `-hls_segment_filename ${tempDir}/part_%03d.ts`,
@@ -344,7 +351,7 @@ async function main () {
                             dirCid = dirStat.cid.toString()
                             console.log(`dir cid: ${dirCid}`)
                             await pinFile(dirCid)
-                            const newFile = {originalFileName: fileName, cid: dirCid, userId: req.user.id, description}
+                            const newFile = {originalFileName: fileName, cid: dirCid, userId: req.user.id, description, duration: file.duration}
                             await File.persist(newFile)
                             File.indexFile({...newFile, categories: categories})
                             for(const category of categories.split(' ')){
@@ -544,6 +551,20 @@ async function main () {
             console.log('app.post/deleteUser error ' + err)
             return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
+    })
+
+    app.get('/user/:id', validateGetUser, getLoggedUser, async (req, res) => {
+        try{
+            const user = await User.withProfileData(req.params.id)
+
+            return goPage('user', req, res, { user })
+
+        } catch(err){
+            console.log('app.get/user/:id error ' + err)
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
+        }
+
+
     })
 
     const addFile = async (fileName, wrapWithDirectory=false) => {
