@@ -3,6 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "homepage" : "http://tests.piteco.org",
+  "repositories": [
+      {
+          "type": "git", 
+          "url": "http://github.com/FabioNevesRezende/ipfs-video-stream"
+      }
+  ],
   "scripts": {
     "start": "nodemon index.js"
   },
