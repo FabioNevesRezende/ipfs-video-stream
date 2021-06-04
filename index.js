@@ -56,7 +56,13 @@ async function main () {
     
     app.use(cookieParser());
 
-    app.use(fileUpload())
+    app.use(fileUpload({
+        limits: { fileSize: 50 * 1024 * 1024 },
+        limitHandler: async function(req, res){
+            return await goPage('error', req, res, { errorMessage: 'Maximum file size: 50 MB' })
+
+        }
+      }));
     
     app.use(express.static(__dirname + '/public'));
     app.use(csrfMiddleware);
