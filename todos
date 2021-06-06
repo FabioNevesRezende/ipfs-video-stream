@@ -34,13 +34,13 @@ manutenção/otimização
     externalizar/distribuir função do ffmpeg
 
 segurança
-    tokens, vazamentos, sql injection (sequelize)
+    tokens, vazamentos, sql injection (sequelize) (x)
 
 videos
     watch random video [por categoria]
     comentarios (x)
     likes [ou reactions]
-    busca por videos [nome e cat]
+    busca por videos [nome e cat] (x)
 
 integração
     redes sociais
