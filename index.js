@@ -58,8 +58,8 @@ async function main () {
 
     app.use(fileUpload({
         limits: { fileSize: 50 * 1024 * 1024 },
-        limitHandler: async function(req, res){
-            return await goPage('error', req, res, { errorMessage: 'Maximum file size: 50 MB' })
+        limitHandler: function(req, res){
+            return goPage('error', req, res, { errorMessage: 'Maximum file size: 50 MB' })
 
         }
       }));
@@ -293,12 +293,22 @@ async function main () {
         }
     })
 
-    app.post('/video', validateVideoInput, AuthMiddleware, (req, res) => {
+    app.post('/video', validateVideoInput, AuthMiddleware, async (req, res) => {
         try{
-            const file = req.files.file
+            //const file = req.files.file
             const fileName = req.body.fileName
             const categories = req.body.categories
             const description = req.body.description
+            const cid = req.body.cid
+
+            const newFile = {originalFileName: fileName, cid, userId: req.user.id, description}
+            await File.persist(newFile)
+            File.indexFile({...newFile, categories: categories})
+            for(const category of categories.split(' ')){
+                await File.associate(category.trim(), cid)
+            }
+
+            return res.redirect('/profile')
 
             file.mv(fileName, async (err) => {
                 if(err){
