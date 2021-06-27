@@ -5,7 +5,7 @@
         <main class="text-center">
             <div class="row">
                 <div class="col-md-12">
-                    <form action="/video" method="POST" enctype="multipart/form-data" id="sendVideo">
+                    <form action="/video" method="POST" enctype="multipart/form-data">
                     <div class="form-floating">
                         <img class="mb-4" src="logo.png" alt="no logo" width="72" height="57">
                     </div>
@@ -17,7 +17,7 @@
                     </div><br>
                     <div class="form-floating">
                         <div class="form-post-file-input-box">
-                            <input type="file" name="file" id="inputfile" required class="form-control">
+                            <input type="file" name="file" required class="form-control">
                         </div>
                     </div>
                     <div class="form-floating">
@@ -31,7 +31,7 @@
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>" /><br>
                     <input type="hidden" name="cid" id="cid" value="" /><br>
                 
-                    <button class="w-100 btn btn-lg btn-primary" type="button" id="upload">Upload</button>
+                    <button class="w-100 btn btn-lg btn-primary" type="submit">Upload</button>
                     <!--captcha-->
                     </form>
                 </div>
@@ -40,83 +40,4 @@
         </main>
     </div>
     <div class="col"></div>
-</div>
-<div class="row">
-
-    <script  src="https://unpkg.com/@ffmpeg/ffmpeg@0.10.0/dist/ffmpeg.min.js"></script>
-    <script>
-        
-        const { createFFmpeg, fetchFile } = FFmpeg;
-        const ffmpeg = createFFmpeg({
-            corePath: 'https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js',
-            log: true,
-        });
-        
-        ffmpeg.setLogger(({ type, message }) => {
-            console.log(type, message);  
-        });
- 
-        const transcode = async () => {
-            console.log('Running ffmpeg')
-            files = document.getElementById("inputfile").files
-            const { name } = files[0];
- 
-            ipfs = await createNode() 
-            await ipfs.files.mkdir(`/videos/${name}` , {parents: true});
- 
-            await ffmpeg.load();
-            ffmpeg.FS('writeFile', name, await fetchFile(files[0]));
-            await ffmpeg.run('-i', name, '-hls_time', '10', '-hls_playlist_type', 'vod', '-hls_segment_filename', 'part_%03d.ts', 'master.m3u8');
- 
-            const mContet = ffmpeg.FS('readFile', 'master.m3u8')
-            const data = (new TextDecoder().decode(mContet)).split('\n')
-            console.log('master.m3u8: ')
-            console.log(data)
-            await ipfs.files.write(`/videos/${name}/master.m3u8`, mContet, { create: true })
-
-            dirStat = await ipfs.files.stat(`/videos/${name}/master.m3u8`)
-            dirCid = dirStat.cid.toString()
-            await ipfs.pin.add(dirCid)
-
-            for(const d of data){
-                if(d.includes('part_')){
-                const part = ffmpeg.FS('readFile', d);
-                console.log(`${d}: `)
-                console.log(part)
- 
-                console.log(`writing ipfs file: /videos/${name}/${d}`)
-                await ipfs.files.write(`/videos/${name}/${d}`, part, { create: true })
-                dirStat = await ipfs.files.stat(`/videos/${name}/${d}`)
-                dirCid = dirStat.cid.toString()
-                await ipfs.pin.add(dirCid)
-                }
-            }
-            await ffmpeg.run('-i', name, '-ss', "00:00:05", '-frames:v', '1', 'thumb.png' );
-
-            const filecontent = ffmpeg.FS('readFile', 'thumb.png')
-            await ipfs.files.write(`/videos/${name}/thumb.png`, filecontent, { create: true })
-            dirStat = await ipfs.files.stat(`/videos/${name}/thumb.png`)
-            dirCid = dirStat.cid.toString()
-            await ipfs.pin.add(dirCid)
-
-            dirStat = await ipfs.files.stat(`/videos/${name}`)
-            dirCid = dirStat.cid.toString()
-            await ipfs.pin.add(dirCid)
-            document.getElementById("inputfile").value = document.getElementById("inputfile").defaultValue
-
-            console.log(`dir cid: ${dirCid}`)
-            document.getElementById("cid").value = dirCid;
-            document.getElementById("sendVideo").submit();
-            return true;
- 
-        }
-
-        $('#upload').click(async () => {
-            return await transcode()
-
-             // return false to cancel form action
-        });
-
-    </script>
-
 </div>

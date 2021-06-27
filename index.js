@@ -293,22 +293,12 @@ async function main () {
         }
     })
 
-    app.post('/video', validateVideoInput, AuthMiddleware, async (req, res) => {
+    app.post('/video', validateVideoInput, AuthMiddleware, (req, res) => {
         try{
-            //const file = req.files.file
+            const file = req.files.file
             const fileName = req.body.fileName
             const categories = req.body.categories
             const description = req.body.description
-            const cid = req.body.cid
-
-            const newFile = {originalFileName: fileName, cid, userId: req.user.id, description}
-            await File.persist(newFile)
-            File.indexFile({...newFile, categories: categories})
-            for(const category of categories.split(' ')){
-                await File.associate(category.trim(), cid)
-            }
-
-            return res.redirect('/profile')
 
             file.mv(fileName, async (err) => {
                 if(err){
