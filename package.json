@@ -19,6 +19,7 @@
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.0.17",
     "bcrypt": "^5.0.1",
+    "chai": "^4.3.4",
     "cookie-parser": "^1.4.5",
     "csurf": "^1.11.0",
     "dotenv": "^8.2.0",
@@ -36,6 +37,7 @@
     "sequelize": "^6.6.2"
   },
   "devDependencies": {
+    "mocha": "^9.0.1",
     "nodemon": "^2.0.7"
   }
 }

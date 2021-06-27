@@ -360,7 +360,7 @@ async function main () {
                             const newFile = {originalFileName: fileName, cid: dirCid, userId: req.user.id, description, duration: file.duration}
                             await File.persist(newFile)
                             File.indexFile({...newFile, categories: categories})
-                            for(const category of categories.split(' ')){
+                            for(const category of categories.split(',')){
                                 await File.associate(category.trim(), dirCid)
                             }
 
