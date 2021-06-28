@@ -6,3 +6,4 @@ package-lock.json
 *.css.map
 public/main.css
 persistence/fileIndex.json
+streamable/*
