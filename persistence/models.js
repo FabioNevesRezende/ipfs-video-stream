@@ -546,9 +546,9 @@ File.persist = async (args) => {
 };
 
 File.getVideosHomePage = async() => {
-  const fileTags = await Tag.findAll({include: [{ model: File, include: [{model: User}] }]});
+  const files = await File.findAll({include: [{model: User}, {model: Tag}]})
 
-  return fileTags;
+  return files;
 };
 
 File.delete = async(cid) => {

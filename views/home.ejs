@@ -13,8 +13,7 @@
     
           <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
 
-    <%for(const tag of params.vids) { %> 
-        <%for(const file of tag.files) { %> 
+    <%for(const file of params.vids) { %> 
                 <div class="col">
                     <div class="card shadow-sm">
                         <a href="/watch?filehash=<%= file.cid %>&filename=<%= file.originalFileName %>">
@@ -35,7 +34,6 @@
                       </div>
                     </div>
                   </div> 
-        <% }  %>
     <% }  %>
       </div>
     </div>
