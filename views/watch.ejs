@@ -1,23 +1,51 @@
 <br>
 <div class="row">
     <div class="col"></div>
-    <div class="col-8">
-        
-        <p>Hash: <%= params?.file?.cid %></p>
-
-
+    <div class="col-8"><br>
+        <div class="row">
+            <div class="col">
+                <h2>   <%= params?.file?.originalFileName %></h2>
+            </div>
+        </div>
         <div class="row">
             <video id="video" width="100%" height="80%" controls autoplay></video>
         </div>
         <br>
+        <div class="row">
+            <div class="col-md-10">
             <%for(const tag of params?.file?.tags){%>
                 <span class="badge bg-secondary">#<%= tag.name %></span>
             <%}%>
+            </div>
+            <div class="col-md-2">
+                <div class="video-meta text-center">
+                    <p>
+                        <span onclick="react(0)" id="reactionThumbUp">&#128077;</span>
+                        <span onclick="react(1)" id="reactionThumbDown">&#128078;</span>
+                    </p>
+                    <div class="progress">
+                        <div class="progress-bar" 
+                        role="progressbar" 
+                        style="width: 25%" 
+                        aria-valuenow="25" 
+                        aria-valuemin="0" 
+                        aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <%if(params?.file?.filereactions?.length > 0) { %>  
+            <datalist id="reactions">
+                <%for(const r of params.file.filereactions) { %> 
+                    <%if(r.userId === params?.user?.id){%>
+                        <option value="<%= r.reaction %>">
+                    <% } %>  
+                <% } %>  
+            </datalist>
+        <% } %>  
 
         <div class="row">
-            <div class="col">
-                <h2><%= params?.file?.originalFileName %></h2>
-            </div>
             <div class="col">
             <%if(params?.user?.id === params?.file?.userId){%>
                 <form method="POST" action="/deleteFile" class="float-end">
@@ -113,4 +141,35 @@
         hls.on(Hls.Events.MANIFEST_PARSED, () => video.play())
     }
     })
+    const opts = $('#reactions').children("option")
+    for(const o in opts){
+        if(o === "0") {
+            $('#reactionThumbUp').css({"color": "purple", "font-weight": "bold"})
+        }
+        if(o === "1") {
+            $('#reactionThumbDown').css({"color": "purple", "font-weight": "bold"})
+        }
+    }
+</script>
+<script>
+
+react = async (reaction) => {
+    const formData = new FormData();
+    formData.append('cid', '<%= params.file.cid %>');
+    formData.append('_csrf', '<%= csrfToken %>');
+    formData.append('reaction', reaction);
+
+    let resp = await fetch('react', 
+        {
+        method: "POST", 
+        body: formData
+        });
+
+    let myText = await resp.text();
+    console.log(myText)
+    console.log(resp)
+    if(resp.status === 200){
+    }
+}
+
 </script>

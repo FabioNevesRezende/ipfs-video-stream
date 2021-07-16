@@ -404,22 +404,29 @@ const Filetag = database.define('filetag', {},
   }
 )
 
-const FileReaction = database.define('filereaction', {
-    reaction: {
-        type: Sequelize.STRING /* + ' CHARSET utf8mb4  COLLATE utf8mb4_bin'*/,
-        allowNull: false,
-        primaryKey: true
-    },
-    qtd: {
-      type: Sequelize.INTEGER,
+const Reaction = database.define('reaction', {
+  num: {
+      type: Sequelize.INTEGER, // 0 like, 1 dislike, 2 heart, 3 happy face, etc
       allowNull: false,
-      defaultValue: 1
-    }
+      primaryKey: true
   },
+},
+{
+  timestamps: false
+}
+)
+
+const FileReaction = database.define('filereaction', {},
   {
     timestamps: false
   }
 )
+
+const FileReaction = sequelize.define('filereaction', {
+    id: Sequelize.STRING,
+    userId: Sequelize.STRING,
+    organizationId: Sequelize.STRING
+});
 
 const Comment = database.define('comment', {
   id: {
@@ -446,9 +453,45 @@ Comment.belongsTo(User);
 
 User.hasMany(Comment);
 
-FileReaction.belongsTo(File);
 
-File.hasMany(FileReaction);
+Reaction.belongsToMany(User, { through: FileReaction })
+
+User.belongsToMany(Reaction, { through: FileReaction })
+
+Reaction.belongsToMany(File, { through: FileReaction })
+
+File.belongsToMany(Reaction, { through: FileReaction })
+
+
+File.react = async (cid, userId, reaction) => {
+
+  try{
+    const r = await Reaction.findOrCreate({ where: { num: reaction }})
+
+  } catch (err){
+    console.log('File.react ' + err)
+  }
+
+
+  try{
+    const fr = await FileReaction.create({
+      fileCid: cid, userId, 
+    }) 
+    return fr;
+  } catch (err){
+    console.log('File.react FileReaction.create error ' + err)
+  }
+}
+
+File.reactions = async (cid) => {
+  try{
+    const fr = await FileReaction.findAll({where: {fileCid:cid}})
+    return fr;
+  }catch(err){
+    console.log('File.reactions error ' + err)
+    
+  }
+}
 
 Comment.createNew = async (text, userId, fileCid) => {
   console.log('Comment.createNew: ' + text)
@@ -561,7 +604,7 @@ File.delete = async(cid) => {
 
 File.getByCid = async(cid) => {
   try{
-    return await File.findOne({ where: { cid }, include: [{model: Comment, include: [{model: User}] }, {model: FileReaction}, {model: Tag}] })
+    return await File.findOne({ where: { cid }, include: [{model: Comment, include: [{model: User}] }, {model: Tag}] })
   }catch(err){
     console.log('File.getByCid error ' + err)
   }

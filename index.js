@@ -10,6 +10,7 @@ const cookieParser = require('cookie-parser');
 const csurf = require('csurf');
 const nodeMailer = require('nodemailer');
 const https = require('https')
+const cors = require('cors')
 require('dotenv').config()
 
 const db = require('./persistence/db')
@@ -20,7 +21,7 @@ const validateSingUp = require('./middleware/validateSingup')
 const validateLogin = require('./middleware/validateLogin')
 const getLoggedUser = require('./middleware/getLoggedUser')
 const handleCsrfError = require('./middleware/handleCsrfError');
-const handleGetWatch = require('./middleware/handleGetWatch');
+const validateGetWatch = require('./middleware/validateGetWatch');
 const validateNewSingupToken = require('./middleware/validateNewSingupToken')
 const validateForgotPassword = require('./middleware/validateForgotPassword') 
 const validateResetPassword  = require('./middleware/validateResetPassword') 
@@ -33,6 +34,7 @@ const validateChangeUserData = require('./middleware/validateChangeUserData')
 const validateSearch = require('./middleware/validateSearch')
 const validateDeleteUser = require('./middleware/validateDeleteUser')
 const validateGetUser = require('./middleware/validateGetUser')
+const validateReact = require('./middleware/validateReact')
 
 async function main () {
     const repoPath = '.ipfs-node-main'
@@ -68,6 +70,7 @@ async function main () {
     app.use(express.static(__dirname + '/public'));
     app.use(csrfMiddleware);
     app.use(handleCsrfError)
+    app.use(cors())
 
     const goPage = async(page, req, res, args) => {
         return res.render('main', {page, params: {...args, appname: process.env.APPNAME }})
@@ -217,10 +220,14 @@ async function main () {
 
     })
     
-    app.get('/watch', getLoggedUser, handleGetWatch, async (req, res) => {
+    app.get('/watch', getLoggedUser, validateGetWatch, async (req, res) => {
         try{
             const f = await File.getByCid(req.query.filehash)
             if(f){
+                f.filereactions = await File.reactions(req.query.filehash)
+                console.log('user: ')
+                console.log(JSON.stringify(req.user))
+                
                 return goPage('watch', req, res, { 
                     file: f,
                     csrfToken: req.csrfToken(),
@@ -585,6 +592,23 @@ async function main () {
         }
 
 
+    })
+
+    app.post('/react', AuthMiddleware, validateReact,  async (req, res) => {
+        try {
+            let r = await File.react(req.body.cid, req.user.id, req.body.reaction)
+
+            if(r){
+                return res.status(200).json({})
+            }
+            else {
+                return res.status(400).json({})
+            }
+            
+        } catch(err) {
+            console.log('app.post/react error ' + err)
+            return res.status(400).json({})
+        }
     })
 
     const addFile = async (fileName, wrapWithDirectory=false) => {
