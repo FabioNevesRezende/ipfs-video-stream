@@ -404,29 +404,17 @@ const Filetag = database.define('filetag', {},
   }
 )
 
-const Reaction = database.define('reaction', {
-  num: {
+const FileReaction = database.define('filereaction', {
+    num: {
       type: Sequelize.INTEGER, // 0 like, 1 dislike, 2 heart, 3 happy face, etc
-      allowNull: false,
-      primaryKey: true
+      allowNull: false
+    },
   },
-},
-{
-  timestamps: false
-}
-)
-
-const FileReaction = database.define('filereaction', {},
   {
     timestamps: false
   }
 )
 
-const FileReaction = sequelize.define('filereaction', {
-    id: Sequelize.STRING,
-    userId: Sequelize.STRING,
-    organizationId: Sequelize.STRING
-});
 
 const Comment = database.define('comment', {
   id: {
@@ -453,30 +441,19 @@ Comment.belongsTo(User);
 
 User.hasMany(Comment);
 
+User.belongsToMany(File, { through: FileReaction })
 
-Reaction.belongsToMany(User, { through: FileReaction })
-
-User.belongsToMany(Reaction, { through: FileReaction })
-
-Reaction.belongsToMany(File, { through: FileReaction })
-
-File.belongsToMany(Reaction, { through: FileReaction })
+File.belongsToMany(User, { through: FileReaction })
 
 
 File.react = async (cid, userId, reaction) => {
 
   try{
-    const r = await Reaction.findOrCreate({ where: { num: reaction }})
-
-  } catch (err){
-    console.log('File.react ' + err)
-  }
-
-
-  try{
-    const fr = await FileReaction.create({
-      fileCid: cid, userId, 
-    }) 
+    const fr = await FileReaction.findOrCreate({
+      fileCid: cid, userId
+    })
+    fr.num = reaction;
+    await fr.save() 
     return fr;
   } catch (err){
     console.log('File.react FileReaction.create error ' + err)
@@ -556,9 +533,9 @@ Tag.belongsToMany(File, { through: Filetag });
 
 File.belongsToMany(Tag, { through: Filetag })
 
-File.belongsTo(User);
+File.belongsTo(User, {foreignKey: 'op', targetKey: 'id'} );
 
-User.hasMany(File);
+User.hasMany(File, {foreignKey: 'op', targetKey: 'id'} );
 
 File.associate = async (name,cid) => {
   try{
@@ -579,9 +556,9 @@ File.associate = async (name,cid) => {
 } 
 
 File.persist = async (args) => {
+  try{
     console.log('persistFile: ' + args.originalFileName)
   
-    try{
       const file1 = await File.create(args) 
   } catch (err){
     console.log('File.persist error ' + err)

@@ -377,7 +377,7 @@ async function main () {
                                 console.log(`dir cid: ${dirCid}`)
                                 await pinFile(dirCid)
                                 requestCidToIpfsNetwork(dirCid)
-                                const newFile = {originalFileName: fileName, cid: dirCid, userId: req.user.id, description, duration: file.duration}
+                                const newFile = {originalFileName: fileName, cid: dirCid, op: req.user.id, description, duration: file.duration}
                                 await File.persist(newFile)
                                 File.indexFile({...newFile, categories: categories})
                                 for(const category of categories.split(',')){
