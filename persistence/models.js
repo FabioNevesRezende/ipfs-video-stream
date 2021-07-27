@@ -589,7 +589,7 @@ File.getByCid = async(cid) => {
 
 File.indexFile = ({originalFileName,cid,description,categories}) => {
 
-  for(const c of categories.split(' ')){
+  for(const c of categories.split(',')){
     if(fileIndex[c]){
       fileIndex[c].push(cid)
     } else {
@@ -618,7 +618,8 @@ File.indexFile = ({originalFileName,cid,description,categories}) => {
 
   fs.writeFile('persistence/fileIndex.json',  JSON.stringify(fileIndex), (err) => {
     if (err) {
-        throw err;
+      console.log("Error updating fileIndex.json: ");
+      console.log(err)
     }
     console.log("JSON data is saved to fileIndex.json");
   });
