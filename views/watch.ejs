@@ -20,11 +20,32 @@
             <div class="col-md-2">
                 <div class="video-meta text-center">
                     <p>
-                        <span onclick="react(0)" id="reactionThumbUp">&#128077;</span>
-                        <span onclick="react(1)" id="reactionThumbDown">&#128078;</span>
+                        <i 
+                        onclick="react(0)" 
+                        id="reactionThumbUp" 
+                        aria-hidden="true"
+                        class="fa fa-thumbs-o-up reaction-button 
+                        <%if(params?.user?.liked) { %>
+                            reacted
+                        <% } %>  
+                        " >
+                        </i>
+
+                        <i 
+                        onclick="react(1)" 
+                        id="reactionThumbDown" 
+                        aria-hidden="true"
+                        class="fa fa-thumbs-o-down reaction-button
+                        <%if(params?.user?.disliked) { %>
+                            reacted
+                        <% } %>  
+                        " >
+                        </i>
+
                     </p>
                     <div class="progress">
-                        <div class="progress-bar" 
+                        <div class="progress-bar"
+                        id="likesBar" 
                         role="progressbar" 
                         style="width: 25%" 
                         aria-valuenow="25" 
@@ -38,9 +59,12 @@
         <%if(params?.file?.filereactions?.length > 0) { %>  
             <datalist id="reactions">
                 <%for(const r of params.file.filereactions) { %> 
-                    <%if(r.userId === params?.user?.id){%>
-                        <option value="<%= r.reaction %>">
-                    <% } %>  
+                        <option value="<%= r.num %>"
+                            <%if(r.userId === params?.user?.id){%>
+                                id="userReactionOption"
+                            <% } %>  
+                        >
+                        </option>
                 <% } %>  
             </datalist>
         <% } %>  
@@ -124,6 +148,21 @@
 <script src="https://cdn.jsdelivr.net/npm/hlsjs-ipfs-loader@0.3.0/dist/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@0.14.17"></script>
 <script>
+
+    const updateLikesBar = () => {
+        const opts = $('#reactions').children("option")
+        let likes = 0
+        let dislikes = 0
+        for(const o in opts){
+            if(o === "0") likes += 1
+            if(o === "1") dislikes += 1
+        }
+        let reactsTotal = likes + dislikes
+        let percentBar = (likes / reactsTotal) * 100
+
+        $('#likesBar').css('width', `${percentBar}%`) 
+    }
+
     /* global Hls Ipfs HlsjsIpfsLoader */
     /* eslint-env browser */
     document.addEventListener('DOMContentLoaded', async () => {
@@ -141,15 +180,8 @@
         hls.on(Hls.Events.MANIFEST_PARSED, () => video.play())
     }
     })
-    const opts = $('#reactions').children("option")
-    for(const o in opts){
-        if(o === "0") {
-            $('#reactionThumbUp').css({"color": "purple", "font-weight": "bold"})
-        }
-        if(o === "1") {
-            $('#reactionThumbDown').css({"color": "purple", "font-weight": "bold"})
-        }
-    }
+    updateLikesBar()
+
 </script>
 <script>
 
@@ -165,10 +197,18 @@ react = async (reaction) => {
         body: formData
         });
 
-    let myText = await resp.text();
-    console.log(myText)
-    console.log(resp)
     if(resp.status === 200){
+        if(reaction === 0){
+            $('#reactionThumbUp').addClass('reacted')
+            $('#reactionThumbDown').removeClass('reacted')
+            $('#userReactionOption').attr('value', 0)
+        } else if(reaction === 1){
+            $('#reactionThumbUp').removeClass('reacted')
+            $('#reactionThumbDown').addClass('reacted')
+            $('#userReactionOption').attr('value', 1)
+
+        }
+        updateLikesBar()
     }
 }
 

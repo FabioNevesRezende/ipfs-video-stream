@@ -446,15 +446,15 @@ User.belongsToMany(File, { through: FileReaction })
 File.belongsToMany(User, { through: FileReaction })
 
 
-File.react = async (cid, userId, reaction) => {
-
+File.react = async (fileCid, userId, num) => {
   try{
-    const fr = await FileReaction.findOrCreate({
-      fileCid: cid, userId
+    const fr = await FileReaction.findOrCreate({ 
+      where: {fileCid, userId},
+      defaults: {num}
     })
-    fr.num = reaction;
-    await fr.save() 
-    return fr;
+    fr[0].num = num
+    await fr[0].save()
+    return fr[0];
   } catch (err){
     console.log('File.react FileReaction.create error ' + err)
   }

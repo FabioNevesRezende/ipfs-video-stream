@@ -36,6 +36,9 @@ const validateDeleteUser = require('./middleware/validateDeleteUser')
 const validateGetUser = require('./middleware/validateGetUser')
 const validateReact = require('./middleware/validateReact')
 
+const LIKE = 0
+const DISLIKE = 1
+
 async function main () {
     const repoPath = '.ipfs-node-main'
     const ipfs = await IPFS.create({silent: true, repo: repoPath })
@@ -227,6 +230,15 @@ async function main () {
                 f.filereactions = await File.reactions(req.query.filehash)
                 console.log('user: ')
                 console.log(JSON.stringify(req.user))
+
+                if(req.user){
+                    for(const r of f.filereactions){
+                        if(r.userId === req.user.id && r.num === LIKE) 
+                            req.user.liked = true
+                        if(r.userId === req.user.id && r.num === DISLIKE) 
+                            req.user.disliked = true
+                    }
+                }
                 
                 return goPage('watch', req, res, { 
                     file: f,
