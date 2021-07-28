@@ -71,7 +71,7 @@
 
         <div class="row">
             <div class="col">
-            <%if(params?.user?.id === params?.file?.userId){%>
+            <%if(params?.user?.id === params?.file?.op || params?.user?.adminLevel > 10){%>
                 <form method="POST" action="/deleteFile" class="float-end">
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                     <input type="hidden" name="cid" value="<%= params.file.cid %>" />
@@ -153,9 +153,9 @@
         const opts = $('#reactions').children("option")
         let likes = 0
         let dislikes = 0
-        for(const o in opts){
-            if(o === "0") likes += 1
-            if(o === "1") dislikes += 1
+        for(const o of opts){
+            if(o.value == 0) likes += 1
+            if(o.value == 1) dislikes += 1
         }
         let reactsTotal = likes + dislikes
         let percentBar = (likes / reactsTotal) * 100
