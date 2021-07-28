@@ -682,7 +682,7 @@ async function main () {
             from: process.env.FROM_EMAIL,
             to: user.email,
             subject: 'Reset password',
-            html: `<p><a href="http://127.0.0.1:3000/forgotPassword?token=${user.resetToken.token}">Click here</a> to reset your password</p>`
+            html: `<p><a href="${process.env.ORIGIN_NAME}/forgotPassword?token=${user.resetToken.token}">Click here</a> to reset your password</p>`
             };
             
             transporter.sendMail(mailOptions, function(error, info){
@@ -706,7 +706,7 @@ async function main () {
             from: process.env.FROM_EMAIL,
             to: user.email,
             subject: 'Confirm register',
-            html: `<p><a href="http://127.0.0.1:3000/validateSingupToken?token=${user.confirmToken.token}">Click here</a> to confirm your registration</p>`
+            html: `<p><a href="${process.env.ORIGIN_NAME}/validateSingupToken?token=${user.confirmToken.token}">Click here</a> to confirm your registration</p>`
             };
             
             transporter.sendMail(mailOptions, function(error, info){
