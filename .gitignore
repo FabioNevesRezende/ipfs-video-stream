@@ -4,6 +4,5 @@ package-lock.json
 *.rest
 .env
 *.css.map
-public/main.css
 persistence/fileIndex.json
 streamable/*
