@@ -13,6 +13,15 @@ const https = require('https')
 const cors = require('cors')
 require('dotenv').config()
 
+if (!fs.existsSync('streamable')) {
+    fs.mkdirSync('streamable')
+    console.log('streamable dir created')
+}
+if (!fs.existsSync('persistence/fileIndex.json')) {
+    fs.writeFileSync('persistence/fileIndex.json', '[]')
+    console.log('Initial index file created')
+}
+
 const db = require('./persistence/db')
 const {User,File,Comment,Userpendingupload,doDbMaintenance} = require('./persistence/models')
 const AuthMiddleware = require('./middleware/auth')
@@ -706,7 +715,7 @@ async function main () {
             from: process.env.FROM_EMAIL,
             to: user.email,
             subject: 'Confirm register',
-            html: `<p><a href="${process.env.ORIGIN_NAME}/validateSingupToken?token=${user.confirmToken.token}">Click here</a> to confirm your registration</p>`
+            html: `<p><a href="${process.env.ORIGIN_NAME}/validateSinsgupToken?token=${user.confirmToken.token}">Click here</a> to confirm your registration</p>`
             };
             
             transporter.sendMail(mailOptions, function(error, info){
