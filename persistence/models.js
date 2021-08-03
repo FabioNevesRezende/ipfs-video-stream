@@ -566,7 +566,11 @@ File.persist = async (args) => {
 };
 
 File.getVideosHomePage = async() => {
-  const files = await File.findAll({include: [{model: User}, {model: Tag}]})
+  const files = await File.findAll({include: [{model: User}, {model: Tag}], order: [['createdAt', 'desc']], limit: 20 })
+
+  for(const f of files){
+    f.op = await User.findOne({where: { id: f.op }})
+  }
 
   return files;
 };
