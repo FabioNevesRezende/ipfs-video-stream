@@ -123,23 +123,16 @@
         <%if(params?.file?.comments?.length > 0) { %>  
             <div class="row-cols-2">
                 <%for(const comment of params.file.comments) { %> 
-                    <div class="card">
+                    <div class="card" id="commentId<%= comment.id %>">
                         <div class="card-body">
                             <p><%= comment.text %></p>
                             <p><i>By <%= comment.user.username %></i>
                                 <%if(comment.user.id === params?.user?.id){%>
-                                <button type="submit" class="btn btng-warning">
+                                <button type="submit" class="btn btng-warning" onclick="deleteComment(<%= comment.id %>)">
                                     <i class="fa fa-trash" aria-hidden="true"></i>
                                 </button>
                                 <% }  %>
                             </p>
-
-                            <%if(comment.user.userId === params?.user?.id){%>
-                            <form action="/deleteComment" method="POST" id="formDeleteComment">
-                                <input type="hidden" name="commentId" value="<%= comment.id %>">
-                                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                            </form>
-                            <% }  %>
 
                         </div>
                     </div>
@@ -222,6 +215,24 @@ react = async (reaction) => {
         }
         updateLikesBar()
     }
+}
+
+deleteComment = async (commentId) => {
+    const formData = new FormData();
+    formData.append('commentId', commentId);
+    formData.append('_csrf', '<%= csrfToken %>');
+
+    let resp = await fetch('deleteComment', 
+        {
+        method: "POST", 
+        body: formData
+        });
+
+    if(resp.status === 200){
+        console.log('comment deleted')
+        $(`#commentId${commentId}`).fadeOut(300, function() { $(this).remove(); })
+    }
+
 }
 
 </script>
