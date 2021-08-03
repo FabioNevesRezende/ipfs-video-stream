@@ -47,7 +47,7 @@
               <%for(const file of params.user.files) { %> 
                   <div class="col">
                       <div class="card shadow-sm">
-                          <a href="/watch?filehash=<%= file.cid %>&filename=<%= file.originalFileName %>">
+                          <a href="/watch?filehash=<%= file.cid %>">
                               <img src="https://gateway.ipfs.io/ipfs/<%= file.cid %>/thumb.png"  width="100%" height="225" preserveAspectRatio="xMidYMid slice">
                           </a>
                         <div class="card-body">

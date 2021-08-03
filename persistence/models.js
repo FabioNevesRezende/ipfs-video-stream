@@ -585,7 +585,9 @@ File.delete = async(cid) => {
 
 File.getByCid = async(cid) => {
   try{
-    return await File.findOne({ where: { cid }, include: [{model: Comment, include: [{model: User}] }, {model: Tag}] })
+    const file = await File.findOne({ where: { cid }, include: [{model: Comment, include: [{model: User}] }, {model: Tag}] })
+    file.op = await User.findOne({where: { id: file.op }})
+    return file
   }catch(err){
     console.log('File.getByCid error ' + err)
   }

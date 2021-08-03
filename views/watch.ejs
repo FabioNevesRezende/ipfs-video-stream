@@ -13,6 +13,12 @@
         <br>
         <div class="row">
             <div class="col-md-10">
+                By <a href="/user/<%= params.file.op.id %>" target="_blank"><%= params.file.op.username %>
+                <%if(params.file.op.profilePhotoCid){%>
+                    <img class="circle-image" src="https://gateway.ipfs.io/ipfs/<%= params.file.op.profilePhotoCid %>" width="45" height="45">
+                <%}%>
+                </a>
+                <br>
             <%for(const tag of params?.file?.tags){%>
                 <span class="badge bg-secondary">#<%= tag.name %></span>
             <%}%>
@@ -80,8 +86,8 @@
             <% } %>
             </div>  
         </div>
-
-        <div class="row-cols-2">
+        <br>    
+        <div class="row">
             <div class="card">
                 <div class="card-body">
                     <%= params?.file?.description %>
@@ -92,15 +98,21 @@
 
 
         <div class="row">
-            <div class="col-6">
+            <div class="col-12">
                 <form method="POST" action="/comment">
                     <div class="row">
-                        <textarea name="commentText" class="form-control" maxlength="512" style="height: 125px;"></textarea>
+                        <textarea name="commentText" class="form-control" maxlength="512" style="height: 125px;" placeholder="Comment something about this"></textarea>
                     </div><br>
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                     <input type="hidden" name="cid" value="<%= params.file.cid %>" />
                     <div class="row">
-                        <button type="submit" class="btn btn-primary">Comment</button>
+                        <button 
+                        type="submit" 
+                        class="btn btn-primary"
+                        <%if(!params?.user){%>
+                            disabled
+                        <% } %>
+                        >Comment</button>
                     </div>
                 </form>    
             </div>
