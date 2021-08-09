@@ -77,7 +77,7 @@
 
         <div class="row">
             <div class="col">
-            <%if(params?.user?.id === params?.file?.op || params?.user?.adminLevel > 10){%>
+            <%if(params?.user?.id === params?.file?.op.id || params?.user?.adminLevel > 10){%>
                 <form method="POST" action="/deleteFile" class="float-end">
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                     <input type="hidden" name="cid" value="<%= params.file.cid %>" />
