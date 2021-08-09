@@ -641,9 +641,9 @@ File.videosFromTerm = async (term) => {
     }
   }
 
-  const fileTags = await Tag.findAll({ include: [{ model: File, include: [{model: User}], where: {cid: cids} }]});
+  const files = await File.findAll({include: [{model: User}], order: [['createdAt', 'desc']], where: {cid: cids} })
 
-  return fileTags;
+  return files;
 
 }
 
