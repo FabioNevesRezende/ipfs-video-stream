@@ -6,7 +6,7 @@ const saltRounds = 15;
 var jwt = require('jsonwebtoken');
 const fs = require('fs');
 const fileIndex = require('./fileIndex')
- 
+const Path = require('path');
 
 const User = database.define('user', {
     id: {
@@ -622,7 +622,9 @@ File.indexFile = ({originalFileName,cid,description,categories}) => {
   }
 
 
-  fs.writeFile('persistence/fileIndex.json',  JSON.stringify(fileIndex), (err) => {
+  const indexJson = Path.join(__dirname, 'fileIndex.json')
+
+  fs.writeFile(indexJson,  JSON.stringify(fileIndex), (err) => {
     if (err) {
       console.log("Error updating fileIndex.json: ");
       console.log(err)

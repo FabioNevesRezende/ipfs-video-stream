@@ -13,12 +13,15 @@ const https = require('https')
 const cors = require('cors')
 require('dotenv').config()
 
-if (!fs.existsSync('streamable')) {
-    fs.mkdirSync('streamable')
-    console.log('streamable dir created')
+const streamableDir = Path.join(__dirname, 'streamable')
+const indexJson = Path.join(Path.join(__dirname, 'persistence'), 'fileIndex.json')
+
+if (!fs.existsSync(streamableDir)) {
+    fs.mkdirSync(streamableDir)
+    console.log(`streamable dir created: ${streamableDir}`)
 }
-if (!fs.existsSync('persistence/fileIndex.json')) {
-    fs.writeFileSync('persistence/fileIndex.json', '[]')
+if (!fs.existsSync(indexJson)) {
+    fs.writeFileSync(indexJson, '{}')
     console.log('Initial index file created')
 }
 
@@ -335,7 +338,7 @@ async function main () {
                         console.log('Error: failed to download the file')
                         return res.status(500).send(err)
                     }
-                    const tempDir = Path.join('streamable', `${fileName}-${Date.now().toString()}`).replace(/(\s+)/g, '-')
+                    const tempDir = Path.join(streamableDir, `${fileName}-${Date.now().toString()}`).replace(/(\s+)/g, '-')
                     const pendingId = await Userpendingupload.newUpload(req.user.id, fileName)
 
                     try{
@@ -362,67 +365,70 @@ async function main () {
                         try{
                             await ipfs.files.mkdir(`/videos/${fileName}` , {parents: true});
 
-                            fs.readdir(`./${tempDir}`, async (err, files) => {
-                                if(err){
-                                    console.log('app.post/video error ' + err)
-                                }
-                                for await (const f of files){
-                                    console.log(f);
-                                    const fromPath = Path.join( `./${tempDir}`, f );
-                                    const stat = await fs.promises.stat( fromPath );
-                                    if( stat.isFile() ){
-                                        const filecontent = fs.readFileSync(fromPath)
-                                        console.log(`writing ipfs file: /videos/${fileName}/${f}`)
-                                        await ipfs.files.write(`/videos/${fileName}/${f}`, filecontent, { create: true })
-
-                                        fileStat = await ipfs.files.stat(`/videos/${fileName}/${f}`)
-                                        fileCid = fileStat.cid.toString()
-                                        await pinFile(fileCid)
-                                        requestCidToIpfsNetwork(fileCid)
+                            fs.readdir(`${tempDir}`, async (err, files) => {
+                                try{
+                                    if(err){
+                                        console.log('app.post/video error ' + err)
                                     }
+                                    for await (const f of files){
+                                        console.log(f);
+                                        const fromPath = Path.join( `${tempDir}`, f );
+                                        const stat = await fs.promises.stat( fromPath );
+                                        if( stat.isFile() ){
+                                            const filecontent = fs.readFileSync(fromPath)
+                                            console.log(`writing ipfs file: /videos/${fileName}/${f}`)
+                                            await ipfs.files.write(`/videos/${fileName}/${f}`, filecontent, { create: true })
 
-                                }
-
-                                await ffmpeg(fileName).takeScreenshots({
-                                    count: 1,
-                                    timemarks: [ '5' ] 
-                                }, tempDir).on('end', async (err) => {
-                                    try{
-                                        if(err) console.log('Error generating thumbnail from video')
-                                        console.log('screenshots were saved')
-                                        const filecontent = fs.readFileSync(`${tempDir}/tn.png`)
-                                        await ipfs.files.write(`/videos/${fileName}/thumb.png`, filecontent, { create: true })
-                                        
-                                        fileStat = await ipfs.files.stat(`/videos/${fileName}/thumb.png`)
-                                        fileCid = fileStat.cid.toString()
-                                        await pinFile(fileCid)
-                                        requestCidToIpfsNetwork(fileCid)
-                                    
-                                        dirStat = await ipfs.files.stat(`/videos/${fileName}`)
-                                        dirCid = dirStat.cid.toString()
-                                        console.log(`dir cid: ${dirCid}`)
-                                        await pinFile(dirCid)
-                                        requestCidToIpfsNetwork(dirCid)
-                                        const newFile = {originalFileName: fileName, cid: dirCid, op: req.user.id, description, duration: file.duration}
-                                        await File.persist(newFile)
-                                        File.indexFile({...newFile, categories: categories})
-                                        for(const category of categories.split(',')){
-                                            await File.associate(category.trim(), dirCid)
+                                            fileStat = await ipfs.files.stat(`/videos/${fileName}/${f}`)
+                                            fileCid = fileStat.cid.toString()
+                                            await pinFile(fileCid)
+                                            requestCidToIpfsNetwork(fileCid)
                                         }
 
-                                        fs.rmSync(fileName)
-                                        Userpendingupload.done(pendingId)
-                                        return dirStat.cid.toString();
-                                    
-                                    }catch(err){
-                                        console.log('ffmpeg.takeScreenshots error: ' + err)
                                     }
 
-                                })
+                                    await ffmpeg(fileName).takeScreenshots({
+                                        count: 1,
+                                        timemarks: [ '5' ] 
+                                    }, tempDir).on('end', async (err) => {
+                                        try{
+                                            if(err) console.log('Error generating thumbnail from video')
+                                            console.log('screenshots were saved')
+                                            const filecontent = fs.readFileSync(`${tempDir}/tn.png`)
+                                            await ipfs.files.write(`/videos/${fileName}/thumb.png`, filecontent, { create: true })
+                                            
+                                            fileStat = await ipfs.files.stat(`/videos/${fileName}/thumb.png`)
+                                            fileCid = fileStat.cid.toString()
+                                            await pinFile(fileCid)
+                                            requestCidToIpfsNetwork(fileCid)
+                                        
+                                            dirStat = await ipfs.files.stat(`/videos/${fileName}`)
+                                            dirCid = dirStat.cid.toString()
+                                            console.log(`dir cid: ${dirCid}`)
+                                            await pinFile(dirCid)
+                                            requestCidToIpfsNetwork(dirCid)
+                                            const newFile = {originalFileName: fileName, cid: dirCid, op: req.user.id, description, duration: file.duration}
+                                            await File.persist(newFile)
+                                            File.indexFile({...newFile, categories: categories})
+                                            for(const category of categories.split(',')){
+                                                await File.associate(category.trim(), dirCid)
+                                            }
 
-                                rootStat = await ipfs.files.stat(`/`)
-                                console.log(`root cid: ${rootStat.cid.toString()}`)
+                                            fs.rmSync(fileName)
+                                            Userpendingupload.done(pendingId)
+                                            return dirStat.cid.toString();
+                                        
+                                        }catch(err){
+                                            console.log('ffmpeg.takeScreenshots error: ' + err)
+                                        }
 
+                                    })
+
+                                    rootStat = await ipfs.files.stat(`/`)
+                                    console.log(`root cid: ${rootStat.cid.toString()}`)
+                                }catch(err){
+                                    console.log('app.post/video error running fs.readdir: ' + err)
+                                }
                             });
                         }catch(err){
                             console.log('app.post/video error running ffmpeg onEnd: ' + err)
