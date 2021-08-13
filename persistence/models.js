@@ -645,6 +645,10 @@ File.videosFromTerm = async (term) => {
 
   const files = await File.findAll({include: [{model: User}], order: [['createdAt', 'desc']], where: {cid: cids} })
 
+  for(const f of files){
+    f.op = await User.findOne({where: { id: f.op }})
+  }
+
   return files;
 
 }
