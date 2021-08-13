@@ -595,27 +595,30 @@ File.getByCid = async(cid) => {
 
 File.indexFile = ({originalFileName,cid,description,categories}) => {
 
-  for(const c of categories.split(',')){
-    if(fileIndex[c]){
+  for(const temp of categories.split(',')){
+    const c = temp.trim()
+    if(fileIndex[c] && !fileIndex[c].includes(cid)){
       fileIndex[c].push(cid)
-    } else {
+    } else if(!fileIndex[c]) {
       fileIndex[c] = []
       fileIndex[c].push(cid)
     }
   }
-  for(const c of originalFileName.split(' ')){
-    if(fileIndex[c]){
+  for(const temp of originalFileName.split(' ')){
+    const c = temp.trim()
+    if(fileIndex[c] && !fileIndex[c].includes(cid)){
       fileIndex[c].push(cid)
-    } else {
+    } else if(!fileIndex[c]) {
       fileIndex[c] = []
       fileIndex[c].push(cid)
     }
   }
 
-  for(const c of description.split(' ')){
-    if(fileIndex[c]){
+  for(const temp of description.split(' ')){
+    const c = temp.trim()
+    if(fileIndex[c] && !fileIndex[c].includes(cid)){
       fileIndex[c].push(cid)
-    } else {
+    } else if(!fileIndex[c]) {
       fileIndex[c] = []
       fileIndex[c].push(cid)
     }
