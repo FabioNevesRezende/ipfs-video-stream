@@ -88,7 +88,7 @@ async function main () {
     app.use(cors())
 
     const goPage = async(page, req, res, args) => {
-        return res.render('main', {page, params: {...args, appname: process.env.APPNAME }})
+        return res.render('main', {page, params: {...args, appname: process.env.APPNAME, user: req.user }})
     }
 
     const goHome = async (req, res, args) => {
@@ -572,7 +572,7 @@ async function main () {
         }
     })
 
-    app.post('/search', validateSearch, async(req,res) => {
+    app.post('/search', validateSearch, getLoggedUser, async(req,res) => {
         try{
             const term = req.body.term
 
