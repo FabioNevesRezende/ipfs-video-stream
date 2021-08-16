@@ -1,4 +1,5 @@
 const { body, validationResult } = require('express-validator');
+const {goPage} = require('../utils')
 
 module.exports = [
     body('cid').exists().matches(/Qm[A-Za-z0-9]{44}$/).withMessage('Invalid cid'),
@@ -8,7 +9,7 @@ module.exports = [
         const errors = validationResult(req);
         console.log(errors)
         if (!errors.isEmpty()) {
-            return res.status(400).render('main', {page: 'error', params: { errorMessage: 'Invalid Input' }});
+            return goPage('error', req, res, { errorMessage: 'Invalid Input' }, 400 )
         }
 
         next()

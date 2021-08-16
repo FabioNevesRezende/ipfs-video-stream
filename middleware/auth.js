@@ -1,4 +1,5 @@
 const { User, AuthToken } = require('../persistence/models');
+const {goPage} = require('../utils')
 
 module.exports = async function(req, res, next) {
   console.log('running middleware auth')
@@ -16,18 +17,16 @@ module.exports = async function(req, res, next) {
         req.user = user;
       }
       else {
-        res.status(400).render('main', {page: 'error', params: { errorMessage: 'Invalid Token' } });
-        return;
+        return goPage('error', req, res, { errorMessage: 'Invalid Token' }, 400 )
       }
     }
     else
     {  
-      res.status(400).render('main', {page: 'error', params: { errorMessage: 'Invalid Token' } });
-      return;
+      return goPage('error', req, res, { errorMessage: 'Invalid Token' }, 400 )
     }
   }
   catch(err){
-    res.status(500).render('main', {page: 'error', params: { errorMessage: 'Internal error' } });
+    return goPage('error', req, res, { errorMessage: 'Internal error' }, 500 )
 
   }
   next();

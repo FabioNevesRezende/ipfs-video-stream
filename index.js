@@ -47,6 +47,7 @@ const validateSearch = require('./middleware/validateSearch')
 const validateDeleteUser = require('./middleware/validateDeleteUser')
 const validateGetUser = require('./middleware/validateGetUser')
 const validateReact = require('./middleware/validateReact')
+const {goPage} = require('./utils')
 
 const LIKE = 0
 const DISLIKE = 1
@@ -86,10 +87,6 @@ async function main () {
     app.use(csrfMiddleware);
     app.use(handleCsrfError)
     app.use(cors())
-
-    const goPage = async(page, req, res, args) => {
-        return res.render('main', {page, params: {...args, appname: process.env.APPNAME, user: req.user }})
-    }
 
     const goHome = async (req, res, args) => {
         if(!args.vids){

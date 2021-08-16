@@ -1,4 +1,5 @@
 const { User, AuthToken } = require('../persistence/models');
+const {goPage} = require('../utils')
 
 module.exports = async function(req, res, next) {
   console.log('running middleware find logged user')
@@ -19,7 +20,7 @@ module.exports = async function(req, res, next) {
     }
   }
   catch(err){
-    res.status(500).render('main', {page: 'error', params: { errorMessage: 'Internal error' } });
+    return goPage('error', req, res, { errorMessage: 'Internal error' }, 500 )
 
   }
   next();

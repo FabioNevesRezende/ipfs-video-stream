@@ -38,5 +38,11 @@ const validateCid = (cid, ipfs) => {
 
 }
 
+
+const goPage = async(page, req, res, args, httpCode=200) => {
+    return res.status(httpCode).render('main', {page, params: {...args, appname: process.env.APPNAME }})
+}
+
 module.exports.isCidRegex = isCidRegex;
 module.exports.validateCid = validateCid;
+module.exports.goPage = goPage;

@@ -1,4 +1,5 @@
 const { body, validationResult } = require('express-validator');
+const {goPage} = require('../utils')
 
 module.exports = [
     body('commentId').exists().isInt({min: 1, max: 2147483648}).escape().trim(),
@@ -7,7 +8,7 @@ module.exports = [
         const errors = validationResult(req);
         console.log(errors)
         if (!errors.isEmpty()) {
-            return res.status(400).render('main', {page: 'error', params: { errorMessage: 'Invalid Input' }});
+            return goPage('error', req, res, { errorMessage: 'Invalid Input' }, 400 )
         }
 
         next()

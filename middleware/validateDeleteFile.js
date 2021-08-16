@@ -1,4 +1,5 @@
 const { body, validationResult } = require('express-validator');
+const {goPage} = require('../utils')
 
 module.exports = [
     body('cid').exists().isLength({ max: 46, min: 46 }).trim().escape().withMessage('Maximum size 46 chars'),
@@ -7,7 +8,7 @@ module.exports = [
         const errors = validationResult(req);
         console.log(errors)
         if (!errors.isEmpty()) {
-            return res.status(400).render('main', {page: 'error', params: { errorMessage: 'Invalid Input' }});
+            return goPage('error', req, res, { errorMessage: 'Invalid Input' }, 400 )
         }
 
         next()
