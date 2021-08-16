@@ -656,11 +656,11 @@ File.videosFromTerm = async (term) => {
 
 }
 
-User.withProfileData = async (userId) => {
+User.withProfileData = async (id) => {
   try{
-    const user = await User.findAll({ where: {id: userId}, include: [{model: File},{model: Userpendingupload}] })
-    if(user && user[0])
-    return user[0]
+    const user = await User.findOne({ where: {id}, include: [{model: File},{model: Userpendingupload}] })
+    if(user)
+      return user
 
   }catch(err){
     console.log('File.ofUser error: ' + err)
