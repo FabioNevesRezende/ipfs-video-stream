@@ -56,7 +56,7 @@
                           </p>
                           <div class="d-flex justify-content-between align-items-center">
                             <%if(file.duration){%>
-                            <small class="text-muted"><%= file.duration %>s</small>
+                            <small class="text-muted"><%= new Date(file.duration * 1000).toISOString().substr(11, 8)  %></small>
                             <%}%>
                           </div>
                         </div>

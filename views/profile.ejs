@@ -11,7 +11,7 @@
 
             <div class="feature col">
               <div class="feature-icon bg-primary bg-gradient">
-                  img
+                <i class="fa fa-lock"></i>
               </div>
               <h2>Change password</h2>
               <hr>
@@ -40,7 +40,7 @@
 
             <div class="feature col">
                 <div class="feature-icon bg-primary bg-gradient">
-                    img
+                <i class="fa fa-picture-o"></i>
                 </div>
                 <h2>Change Profile Photo</h2>
                 <hr>
@@ -61,9 +61,9 @@
               
             <div class="feature col">
                 <div class="feature-icon bg-primary bg-gradient">
-                    img
+                  <i class="fa fa-database"></i>
                 </div>
-                <h2>Change password</h2>
+                <h2>Change your user data</h2>
                 <hr>
   
                 <form method="POST" action="/changeUserData">
@@ -154,7 +154,7 @@
                               <button type="button" class="btn btn-sm btn-outline-secondary">Delete</button>
                             </div>
                             <%if(file.duration){%>
-                            <small class="text-muted"><%= file.duration %>s</small>
+                            <small class="text-muted"><%= new Date(file.duration * 1000).toISOString().substr(11, 8) %></small>
                             <%}%>
                           </div>
                         </div>
@@ -165,7 +165,9 @@
       </div>
   </div>
   <% } else { %>
-      <p>You haven't uploaded any file yet</p>
+    <div class="text-center">
+      <h3>You haven't uploaded any file yet</h3>
+    </div>
   
   <% }  %>
 
