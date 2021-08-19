@@ -14,15 +14,10 @@ const cors = require('cors')
 require('dotenv').config()
 
 const streamableDir = Path.join(__dirname, 'streamable')
-const indexJson = Path.join(Path.join(__dirname, 'persistence'), 'fileIndex.json')
 
 if (!fs.existsSync(streamableDir)) {
     fs.mkdirSync(streamableDir)
     console.log(`streamable dir created: ${streamableDir}`)
-}
-if (!fs.existsSync(indexJson)) {
-    fs.writeFileSync(indexJson, '{}')
-    console.log('Initial index file created')
 }
 
 const db = require('./persistence/db')
@@ -406,7 +401,7 @@ async function main () {
                                             requestCidToIpfsNetwork(dirCid)
                                             const newFile = {originalFileName: fileName, cid: dirCid, op: req.user.id, description, duration: file.duration}
                                             await File.persist(newFile)
-                                            File.indexFile({...newFile, categories: categories})
+                                            await File.indexFile({...newFile, categories: categories})
                                             for(const category of categories.split(',')){
                                                 await File.associate(category.trim(), dirCid)
                                             }
@@ -579,7 +574,7 @@ async function main () {
             goHome(req, res, {vids})
 
         }catch(err){
-            console.log('app.post/changeUserData error ' + err)
+            console.log('app.post/search error ' + err)
             return goPage('error', req, res, { errorMessage: 'Error processing request' })
         }
 

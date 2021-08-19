@@ -1,11 +1,11 @@
 const Sequelize = require('sequelize');
+const { QueryTypes } = require('sequelize');
 const database = require('./db');
 const OP = Sequelize.Op;
 const bcrypt = require('bcrypt');
 const saltRounds = 15;
 var jwt = require('jsonwebtoken');
 const fs = require('fs');
-const fileIndex = require('./fileIndex')
 const Path = require('path');
 
 const User = database.define('user', {
@@ -593,63 +593,74 @@ File.getByCid = async(cid) => {
   }
 }
 
-File.indexFile = ({originalFileName,cid,description,categories}) => {
+const IndexTable = database.define('indextable', {
+  word: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    primaryKey: true
+  },
+  cid: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      primaryKey: true
+  },
+},
+{
+  timestamps: false
+})
+
+
+File.indexFile = async ({originalFileName,cid,description,categories}) => {
 
   for(const temp of categories.split(',')){
-    const c = temp.trim()
-    if(fileIndex[c] && !fileIndex[c].includes(cid)){
-      fileIndex[c].push(cid)
-    } else if(!fileIndex[c]) {
-      fileIndex[c] = []
-      fileIndex[c].push(cid)
+    const word = temp.trim()
+    try{
+      await IndexTable.create({word, cid})
+    } catch(err){
+      console.log(`File.indexFile error: ${err}`)
     }
   }
   for(const temp of originalFileName.split(' ')){
-    const c = temp.trim()
-    if(fileIndex[c] && !fileIndex[c].includes(cid)){
-      fileIndex[c].push(cid)
-    } else if(!fileIndex[c]) {
-      fileIndex[c] = []
-      fileIndex[c].push(cid)
+    const word = temp.trim()
+    try{
+      await IndexTable.create({word, cid})
+    } catch(err){
+      console.log(`File.indexFile error: ${err}`)
     }
   }
 
   for(const temp of description.split(' ')){
-    const c = temp.trim()
-    if(fileIndex[c] && !fileIndex[c].includes(cid)){
-      fileIndex[c].push(cid)
-    } else if(!fileIndex[c]) {
-      fileIndex[c] = []
-      fileIndex[c].push(cid)
+    const word = temp.trim()
+    try{
+      await IndexTable.create({word, cid})
+    } catch(err){
+      console.log(`File.indexFile error: ${err}`)
     }
   }
-
-
-  const indexJson = Path.join(__dirname, 'fileIndex.json')
-
-  fs.writeFile(indexJson,  JSON.stringify(fileIndex), (err) => {
-    if (err) {
-      console.log("Error updating fileIndex.json: ");
-      console.log(err)
-    }
-    console.log("JSON data is saved to fileIndex.json");
-  });
 
 }
 
 File.videosFromTerm = async (term) => {
-  let cids = []
-  for(const w of term.split(' ')){
-    if(fileIndex[w]){
-      for(const cid of fileIndex[w])
-        cids.push(cid)
-    }
+  let words = []
+  for(const word of term.split(' ')){
+    words += word
   }
-
-  const files = await File.findAll({include: [{model: User}], order: [['createdAt', 'desc']], where: {cid: cids} })
+  const files = await database.query(
+    'SELECT f.cid, f.originalFileName, f.duration, u.username, u.id \
+    FROM files f \
+    inner join indextables i on i.cid = f.cid \
+    inner join users u on u.id = f.op \
+    WHERE i.word IN(:words)',
+    {
+      replacements: { words: words },
+      type: QueryTypes.SELECT
+    }
+  );
 
   for(const f of files){
-    f.op = await User.findOne({where: { id: f.op }})
+    f.op = {}
+    f.op.username = f.username
+    f.op.id = f.id
   }
 
   return files;
