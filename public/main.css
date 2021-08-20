@@ -131,3 +131,25 @@ body {
 
 .circle-image {
   border-radius: 50%; }
+
+.description-box {
+  padding: 2em; }
+
+.comment-box {
+  border-radius: 25px;
+  padding: 0.3em;
+  -webkit-transition: color 0.2s ease-out;
+  -moz-transition: color 0.2s ease-out;
+  -o-transition: color 0.2s ease-out;
+  -ms-transition: color 0.2s ease-out;
+  transition: color 0.2s ease-out; }
+
+.comment-box:hover {
+  background-color: #fcfcfc; }
+
+.comment-textarea {
+  background: transparent;
+  color: transparent;
+  resize: none;
+  border: 0 none;
+  outline: none;}

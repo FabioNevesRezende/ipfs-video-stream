@@ -87,13 +87,10 @@
             </div>  
         </div>
         <br>    
-        <div class="row">
-            <div class="card">
-                <div class="card-body">
-                    <%= params?.file?.description %>
-                </div>
-            </div>
+        <div class="row description-box">
+            <%= params?.file?.description %>
         </div>
+        <hr>
         <br>
 
 
@@ -101,7 +98,7 @@
             <div class="col-12">
                 <form method="POST" action="/comment">
                     <div class="row">
-                        <textarea name="commentText" class="form-control" maxlength="512" style="height: 125px;" placeholder="Comment something about this"></textarea>
+                        <textarea name="commentText" class="form-control comment-textarea" maxlength="512" placeholder="Comment something about this"></textarea>
                     </div><br>
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                     <input type="hidden" name="cid" value="<%= params.file.cid %>" />
@@ -123,8 +120,7 @@
         <%if(params?.file?.comments?.length > 0) { %>  
             <div class="row-cols-2">
                 <%for(const comment of params.file.comments) { %> 
-                    <div class="card" id="commentId<%= comment.id %>">
-                        <div class="card-body">
+                    <div id="commentId<%= comment.id %>" class="comment-box">
                             <p><%= comment.text %></p>
                             <p><i>By <%= comment.user.username %></i>
                                 <%if(comment.user.id === params?.user?.id){%>
@@ -133,9 +129,8 @@
                                 </button>
                                 <% }  %>
                             </p>
-
-                        </div>
                     </div>
+                    <hr><br>
                 <% }  %>
             </div>
 
