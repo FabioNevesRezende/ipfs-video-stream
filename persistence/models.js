@@ -575,6 +575,12 @@ File.getVideosHomePage = async() => {
   return files;
 };
 
+File.getRandomCids = async() => {
+  const files = await File.findAll({include: [ {model: Tag, attributes: ['name'] }], attributes: ['cid'] })
+
+  return files;
+};
+
 File.delete = async(cid) => {
   try{
     File.destroy({ where: { cid }})

@@ -31,18 +31,17 @@
 <script>
     loadLocalCids = () => {
       var url = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '')+'/randomVideos'
-      $.getJSON(url, function(data) {
+      $.getJSON(url, (data) => {
         cids = {}
-        for(const tag of data){
-          for(const file of tag.files){
-            if(cids[tag.name]) { 
+        for(const file of data){
+          for(const tag of file.tags){
+            if(cids[tag.name] && !cids[tag.name].includes(file.cid)) { 
               cids[tag.name].push(file.cid)
-            }  else {
+            }  else if(!cids[tag.name]) {
               cids[tag.name] = []; 
               cids[tag.name].push(file.cid)
             }
           }
-
         }
         localStorage.setItem('cids', JSON.stringify(cids))
       });
@@ -71,7 +70,8 @@
             window.location.href = "/watch?filehash=" + t[ Math.floor( Math.random() * ( t.length-1) ) ];
         }     
     }
-    if(!localStorage.getItem('cids')){
+    let cids = JSON.parse(localStorage.getItem('cids'))
+    if(!cids || $.isEmptyObject(cids)){
       loadLocalCids();
     }
 
