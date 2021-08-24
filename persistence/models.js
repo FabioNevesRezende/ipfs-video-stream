@@ -620,6 +620,7 @@ File.indexFile = async ({originalFileName,cid,description,categories}) => {
 
   for(const temp of categories.split(',')){
     const word = temp.trim()
+    if(word === '') continue;
     try{
       await IndexTable.create({word, cid})
     } catch(err){
@@ -628,6 +629,7 @@ File.indexFile = async ({originalFileName,cid,description,categories}) => {
   }
   for(const temp of originalFileName.split(' ')){
     const word = temp.trim()
+    if(word === '') continue;
     try{
       await IndexTable.create({word, cid})
     } catch(err){
@@ -637,6 +639,7 @@ File.indexFile = async ({originalFileName,cid,description,categories}) => {
 
   for(const temp of description.split(' ')){
     const word = temp.trim()
+    if(word === '') continue;
     try{
       await IndexTable.create({word, cid})
     } catch(err){
@@ -671,6 +674,18 @@ File.videosFromTerm = async (term) => {
 
   return files;
 
+}
+
+File.reindex = async () => {
+  const files = await File.findAll({ attributes: ['originalFileName', 'cid', 'description'] })
+  for(const f of files){
+    const tagsOfFile = await Filetag.findAll({where: {fileCid: f.cid}})
+    let tgs = ""
+    for(const t of tagsOfFile){
+      tgs += t.tagName + ","
+    }
+    await File.indexFile({originalFileName: f.originalFileName, cid: f.cid, description: f.description, categories: tgs})
+  }
 }
 
 User.withProfileData = async (id) => {

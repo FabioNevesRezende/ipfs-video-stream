@@ -7,6 +7,13 @@
       </div>
         <h2 class="pb-2 border-bottom">Profile</h2>
 
+
+        <%if(params.user.adminLevel >= 10) { %>   
+          <form action="/reindex" method="post">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <button class="w-100 btn btn-lg btn-warning" type="submit">Reindex Files</button>
+          </form>
+        <% } %>   
         <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
 
             <div class="feature col">

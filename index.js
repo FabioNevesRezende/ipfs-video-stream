@@ -649,6 +649,22 @@ async function main () {
         }
     })
 
+    app.post('/reindex', AuthMiddleware, async (req, res) => {
+        try {
+            if(req.user.adminLevel > 10){
+                console.log('app.post/reindex Reindexing database files')
+                await File.reindex()
+                return res.status(200).redirect(req.header('Referer') || '/')
+
+            }
+            return goPage('error', req, res, { errorMessage: 'You don\'t have rights to do this operation' })
+            
+        } catch(err) {
+            console.log('app.post/reindex error ' + err)
+            return goPage('error', req, res, { errorMessage: 'Error processing request' })
+        }
+    })
+
     const addFile = async (fileName, wrapWithDirectory=false) => {
         const file = fs.readFileSync(fileName)
         const fileAdded = await ipfs.add({path: fileName, content: file}, { wrapWithDirectory })
