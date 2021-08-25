@@ -577,7 +577,7 @@ async function main () {
             const vids = await File.videosFromTerm(term);
             console.log('vids')
             console.log(JSON.stringify(vids))
-            goHome(req, res, {vids})
+            goHome(req, res, {vids, user: req.user})
 
         }catch(err){
             console.log('app.post/search error ' + err)
