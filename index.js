@@ -42,6 +42,8 @@ const validateSearch = require('./middleware/validateSearch')
 const validateDeleteUser = require('./middleware/validateDeleteUser')
 const validateGetUser = require('./middleware/validateGetUser')
 const validateReact = require('./middleware/validateReact')
+var sgTransport = require('nodemailer-sendgrid-transport');
+
 const {goPage} = require('./utils')
 
 const LIKE = 0
@@ -52,13 +54,13 @@ async function main () {
     const ipfs = await IPFS.create({silent: true, repo: repoPath })
     const app = express()
 
-    const transporter = nodeMailer.createTransport({
-        service: 'gmail',
+    var transporter = nodeMailer.createTransport(sgTransport({
         auth: {
-          user: process.env.FROM_EMAIL,
-          pass: process.env.FROM_EMAIL_PASSWORD
+            api_key: process.env.SENDGRID_API_KEY
         }
-    });
+      }
+      ));
+
 
     const csrfMiddleware = csurf({
         cookie: true
@@ -735,7 +737,7 @@ async function main () {
             from: process.env.FROM_EMAIL,
             to: user.email,
             subject: 'Confirm register',
-            html: `<p><a href="${process.env.ORIGIN_NAME}/validateSinsgupToken?token=${user.confirmToken.token}">Click here</a> to confirm your registration</p>`
+            html: `<p><a href="${process.env.ORIGIN_NAME}/validateSingupToken?token=${user.confirmToken.token}">Click here</a> to confirm your registration</p>`
             };
             
             transporter.sendMail(mailOptions, function(error, info){
