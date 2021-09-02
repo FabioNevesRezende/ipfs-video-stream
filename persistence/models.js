@@ -52,6 +52,11 @@ const User = database.define('user', {
       type: Sequelize.INTEGER,
       allowNull: false,
       defaultValue: 0
+    },
+    hostIpfsCopy: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false,
+      allowNull: false
     }
 });
 

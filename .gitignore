@@ -5,3 +5,4 @@ package-lock.json
 .env
 *.css.map
 streamable/*
+pinata.txt

@@ -1,0 +1,1 @@
+alter table users add column `hostIpfsCopy` TINYINT(1) NOT NULL DEFAULT false;

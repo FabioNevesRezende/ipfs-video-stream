@@ -1,0 +1,5 @@
+1. git commit
+2. atualizar .env se houver
+3. rodar alterações SQL no banco se houver
+4. inserir dados SQL se houver
+5. deploy

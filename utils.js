@@ -40,9 +40,20 @@ const validateCid = (cid, ipfs) => {
 
 
 const goPage = async(page, req, res, args, httpCode=200) => {
+    if(req.user && !args.user){
+        args.user = req.user
+    }
     return res.status(httpCode).render('main', {page, params: {...args, appname: process.env.APPNAME }})
 }
+
+const sleep = (ms) => {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}   
+  
 
 module.exports.isCidRegex = isCidRegex;
 module.exports.validateCid = validateCid;
 module.exports.goPage = goPage;
+module.exports.sleep = sleep;

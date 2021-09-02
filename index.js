@@ -14,10 +14,16 @@ const cors = require('cors')
 require('dotenv').config()
 
 const streamableDir = Path.join(__dirname, 'streamable')
+const imagesDir = Path.join(__dirname, 'imgs')
 
 if (!fs.existsSync(streamableDir)) {
     fs.mkdirSync(streamableDir)
     console.log(`streamable dir created: ${streamableDir}`)
+}
+
+if (!fs.existsSync(imagesDir)) {
+    fs.mkdirSync(imagesDir)
+    console.log(`imagesDir dir created: ${imagesDir}`)
 }
 
 const db = require('./persistence/db')
@@ -44,7 +50,7 @@ const validateGetUser = require('./middleware/validateGetUser')
 const validateReact = require('./middleware/validateReact')
 var sgTransport = require('nodemailer-sendgrid-transport');
 
-const {goPage} = require('./utils')
+const {goPage, sleep} = require('./utils')
 
 const LIKE = 0
 const DISLIKE = 1
@@ -414,6 +420,13 @@ async function main () {
                                                 await File.associate(category.trim(), dirCid)
                                             }
 
+                                            if(!req.user.hostIpfsCopy){
+                                                await sleep(60000) // sleep to wait propagate the cids to ipfs network, 60 seconds chosen arbitrarily
+                                                fs.rmSync(tempDir, { recursive: true })
+                                            } else {
+                                                pinCidToPinataCloud(dirCid)
+                                            }
+
                                             fs.rmSync(fileName)
                                             Userpendingupload.done(pendingId)
                                             return dirStat.cid.toString();
@@ -488,16 +501,29 @@ async function main () {
     app.post('/changeProfilePhoto', AuthMiddleware, validateUpdateImage, async (req,res) => {
         try{
             const image = req.files.image
-            await image.mv('imagefile', async (err) => {
+            const currentImg = Path.join(imagesDir, 'imagefile-' + req.user.username)
+            if(image.size > 1024 * 1024){
+                return goPage('error', req, res, { errorMessage: 'Maximum file size: 1 MB' })
+            }
+
+            await image.mv(currentImg, async (err) => {
                 if(err){
                     console.log('Error: failed to download the file')
                     return res.status(500).send(err)
                 }
 
-                imgCid = await addFile('imagefile')
-                req.user = await User.updateProfilePhoto(req.user, imgCid) 
+                imgCid = await addFile(currentImg)
 
-                fs.rmSync('imagefile')
+                if(req.user.profilePhotoCid){
+                    unpinCidFromPinataCloud(req.user.profilePhotoCid)
+                }
+
+                req.user = await User.updateProfilePhoto(req.user, imgCid) 
+                requestCidToIpfsNetwork(imgCid)
+                pinCidToPinataCloud(imgCid)
+                
+                fs.rmSync(currentImg)
+                
                 return goProfile(req, res, {})
 
             })
@@ -545,6 +571,7 @@ async function main () {
         try{
             const f = await File.findOne({ where: { cid: req.body.cid } })
             if(f?.userId === req.user.id || req.user.adminLevel > 0){
+                unpinCidFromPinataCloud(f.cid)
                 await File.delete(f.cid)
                 return res.redirect(req.header('Referer') || '/')
 
@@ -669,10 +696,9 @@ async function main () {
 
     const addFile = async (fileName, wrapWithDirectory=false) => {
         const file = fs.readFileSync(fileName)
-        const fileAdded = await ipfs.add({path: fileName, content: file}, { wrapWithDirectory })
+        const fileAdded = await ipfs.add({content: file}, { wrapWithDirectory })
         fileCid = fileAdded.cid.toString()
         console.log('added file cid ' + fileCid)
-        pinFile(fileCid)
         return fileCid;
     }
 
@@ -691,7 +717,7 @@ async function main () {
         }
         
         const req = https.request(options, async res => {
-          console.log(`statusCode: ${res.statusCode}`)
+          console.log(`requestCidToIpfsNetwork ${cid} statusCode: ${res.statusCode}`)
         
         //   res.on('data', d => {
         //     process.stdout.write(d)
@@ -703,6 +729,65 @@ async function main () {
         })
         
         req.end()
+    }
+
+    const pinCidToPinataCloud = (cid) => {
+
+        const data = JSON.stringify({
+            hashToPin: cid
+        })
+
+        const options = {
+            hostname: 'api.pinata.cloud',
+            port: 443,
+            path: `/pinning/pinByHash`,
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Content-Length': data.length,
+              'pinata_api_key': process.env.PINATA_API_KEY,
+              'pinata_secret_api_key': process.env.PINATA_SECRET_API_KEY 
+            }
+        }
+        
+        const req = https.request(options, async res => {
+          console.log(`pinCidToPinataCloud ${cid} statusCode: ${res.statusCode}`)
+        
+        })
+        
+        req.on('error', error => {
+          console.error(`pinCidToPinataCloud error: ${error}`)
+        })
+
+        req.write(data)
+        req.end()
+
+    }
+
+    const unpinCidFromPinataCloud = (cid) => {
+
+        const options = {
+            hostname: 'api.pinata.cloud',
+            port: 443,
+            path: `/pinning/unpin/${cid}`,
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'pinata_api_key': process.env.PINATA_API_KEY,
+              'pinata_secret_api_key': process.env.PINATA_SECRET_API_KEY 
+            }
+        }
+        
+        const req = https.request(options, async res => {
+          console.log(`unpinCidFromPinataCloud ${cid} statusCode: ${res.statusCode}`)
+        })
+        
+        req.on('error', error => {
+          console.error(`unpinCidFromPinataCloud error: ${error}`)
+        })
+
+        req.end()
+
     }
 
     const sendEmailResetPassword = (user) => {
