@@ -169,3 +169,10 @@ body {
     margin-top: 50px; }
   .about-section .darker {
     background-color: #d5d5d5; }
+
+#faCopyMoneroAddressToClipboard {
+  text-align: center;
+  font-size: 30px; }
+
+#faCopyMoneroAddressToClipboard:hover {
+  cursor: pointer; }

