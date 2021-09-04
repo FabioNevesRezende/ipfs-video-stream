@@ -115,7 +115,7 @@
                 </li>
               </ul>
               <form  method="POST" action="/search" class="d-flex">
-                <input class="form-control me-2" name="term" type="search" placeholder="Search" aria-label="Search" required>
+                <input class="form-control me-2" name="term" type="search" placeholder="Search" aria-label="Search" maxlength="50" required>
                 <input type="hidden" name="_csrf" value="<%= params.csrfToken %>" />
                 <button class="btn btn-outline-success" type="submit">Search</button>
               </form>
