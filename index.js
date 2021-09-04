@@ -79,9 +79,9 @@ async function main () {
     app.use(cookieParser());
 
     app.use(fileUpload({
-        limits: { fileSize: 50 * 1024 * 1024 },
+        limits: { fileSize: 500 * 1024 * 1024 },
         limitHandler: function(req, res){
-            return goPage('error', req, res, { errorMessage: 'Maximum file size: 50 MB' })
+            return goPage('error', req, res, { errorMessage: 'Maximum file size: 500 MB' })
 
         }
       }));
