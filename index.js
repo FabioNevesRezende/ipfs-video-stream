@@ -702,6 +702,15 @@ async function main () {
             return goPage('error', req, res, { errorMessage: 'Internal error' })
         }
     })
+
+    app.get('/noscript', (req, res) => {
+        try{
+            return res.status(200).render('noscript')
+        } catch(err){
+            console.log('app.get/noscript error ' + err)
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
+        }
+    })
     
     const addFile = async (fileName, wrapWithDirectory=false) => {
         const file = fs.readFileSync(fileName)
