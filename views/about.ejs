@@ -1,0 +1,43 @@
+<main class="about-section text-center">
+    <div>
+        <div class="row darker">
+            <h1><%= params?.appname %></h1>
+            <div class="col-sm-8">
+                <p>We are a website proposed to bring a place for you to share and watch videos based on the <strong>IPFS protocol</strong>.</p>
+            </div>
+            <div class="col-sm-4">
+                <img src="https://gateway.ipfs.io/ipfs/QmdcJdtiatRNcEpqPcw25B1ZxiebvrNp6QAerYQU9VXAXp" alt="ipfs" width="50%">
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <h2>How does it works?</h2>
+        <div class="col-sm-4">
+            <img src="https://gateway.ipfs.io/ipfs/Qmdy9RE9hXSNy4ZzGcPFWddLHiWPx8DT8LWVz3iosh1hFg" alt="ipfs" width="100%">
+        </div>
+        <div class="col-sm-8">
+            <p>IPFS is a <strong>decentralized protocol</strong> where one can reach files by it's CID (content identifier).
+                Whenever you upload a video to us, we give you the CID of this video. <strong>We do not host the video</strong>, you must host it by yourself according to the CID received.</p>
+            <p>In future versions of <%= params?.appname %> we will have a <strong>premium account</strong> mode where we can host one copy of your files for you!</p>
+        </div>
+    </div>
+    <div class="row darker">
+        <h2>Is it like torrent?</h2>
+        <div class="col-sm-8">
+            <p>It's even better, torrent is only a protocol for connecting peers. While IPFS is a <strong>file system</strong> used for decentralized file sharing.</p>
+            <p>It allows you to share your files across the web and provide "sticky" files as long as one maintain its CID. This also provides faster accessibility over torrent.</p>
+        </div>
+        <div class="col-sm-4">
+            <i class="fa fa-cloud-download" aria-hidden="true"></i>
+        </div>
+    </div>
+    <div class="row">
+        <h2>Your viewers also help you with hosting</h2>
+        <div class="col-sm-4">
+            <i class="fa fa-television" aria-hidden="true"></i>
+        </div>
+        <div class="col-sm-8">
+            <p>Everytime someone watches your video, an IPFS node is created and hosts a copy of the file. With this, peers around the planet which are closer to him will have faster reachability to your videos.</p>
+        </div>
+    </div>
+</main>

@@ -173,3 +173,24 @@ body {
   border: 0 none;
   outline: none;
 }
+
+.about-section {
+  text-align: center;
+  p{
+    margin-top: 60px; 
+    font-size: 24px;
+  };
+  .row{
+    margin-bottom: 4.5em;
+    padding-top: 200px;
+    padding-bottom: 200px;
+  };
+  .fa{
+    font-size: 250px;
+    color: #43999E;
+    margin-top: 50px;
+  };
+  .darker{
+    background-color: #d5d5d5;
+  }
+}

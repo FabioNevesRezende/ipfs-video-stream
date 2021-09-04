@@ -694,6 +694,15 @@ async function main () {
         }
     })
 
+    app.get('/about', getLoggedUser, (req, res) => {
+        try{
+            return goPage('about', req, res, {})
+        } catch(err){
+            console.log('app.get/about error ' + err)
+            return goPage('error', req, res, { errorMessage: 'Internal error' })
+        }
+    })
+    
     const addFile = async (fileName, wrapWithDirectory=false) => {
         const file = fs.readFileSync(fileName)
         const fileAdded = await ipfs.add({content: file}, { wrapWithDirectory })
