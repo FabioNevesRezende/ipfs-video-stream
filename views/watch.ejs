@@ -158,6 +158,10 @@
             if(o.value == 1) dislikes += 1
         }
         let reactsTotal = likes + dislikes
+        if(reactsTotal === 0){
+            $('#likesBar').css('width', 50) 
+            return
+        }
         let percentBar = (likes / reactsTotal) * 100
 
         $('#likesBar').css('width', `${percentBar}%`) 
@@ -166,6 +170,7 @@
     /* global Hls Ipfs HlsjsIpfsLoader */
     /* eslint-env browser */
     document.addEventListener('DOMContentLoaded', async () => {
+    updateLikesBar()
     const fileHash = '<%= params.file.cid %>'
     console.log('hash file: ' + fileHash)
     Hls.DefaultConfig.loader = HlsjsIpfsLoader
@@ -182,7 +187,6 @@
         hls.on(Hls.Events.MANIFEST_PARSED, () => video.play())
     }
     })
-    updateLikesBar()
 
 </script>
 <script>
