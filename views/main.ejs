@@ -49,12 +49,17 @@
 
 
     createNode = async () => {
-        //repoPath = 'ipfs-local-' + Math.random()
-        node = await Ipfs.create() 
-        console.log('node created: ' + node ) 
-        return node
+      repo = 'ipfs-local'
+      console.log(`Creating IPFS node at ${repo}`)
+      node = await Ipfs.create({repo, relay: {enabled: true, hop: { enabled: true, active: true }} } ) 
+      console.log('Ipfs node created: ' + node ) 
+      window.ipfsNode = node
     }
-
+    if(!location.pathname.includes('watch')){
+      console.log('out of watch page, creating node')
+      createNode();
+    }
+    
     gotoRandomVideoPage = (tag=undefined) => {
         if(localStorage.getItem('cids')){
             const cids = JSON.parse(localStorage.getItem('cids'))

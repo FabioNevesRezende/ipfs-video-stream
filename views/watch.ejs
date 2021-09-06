@@ -178,7 +178,15 @@
     if (Hls.isSupported()) {
         const video = document.getElementById('video')
         const hls = new Hls()
-        hls.config.ipfs = await createNode()
+        if(window.ipfsNode){
+            console.log("ipfs node already defined in window object")
+            hls.config.ipfs = window.ipfsNode
+        }
+        else {
+            console.log("ipfs node undefined, creating one")
+            await createNode()
+            hls.config.ipfs = window.ipfsNode
+        }
         hls.config.ipfsHash = fileHash
         hls.config.ipfs.pin.add(fileHash, {recursive: true})
         console.log(`pinned file hash ${fileHash}`)
