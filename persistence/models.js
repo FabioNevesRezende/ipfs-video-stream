@@ -745,6 +745,33 @@ Userpendingupload.done = async (id) => {
   }
 }
 
+const FilePendingDeletion = database.define('filependingdeletion', {
+  id: {
+    type: Sequelize.INTEGER,
+    autoIncrement: true,
+    allowNull: false,
+    primaryKey: true
+  },
+  dirname: {
+      type: Sequelize.STRING,
+      allowNull: false
+  }
+},
+{
+  updatedAt: false
+}
+)
+
+FilePendingDeletion.schedule = async (dirname) => {
+  try{
+    await FilePendingDeletion.create({dirname})
+  }catch(err){
+    console.log('FilePendingDeletion.schedule error: ' + err)
+  }
+
+}
+
+
 doDbMaintenance = async() => {
   try{
     console.log('doDbMaintenance start')
@@ -758,16 +785,37 @@ doDbMaintenance = async() => {
     udate.setDate( udate.getDate() - 60 );
     urptdate.setMinutes( udate.getMinutes() - 15 );
 
-    AuthToken.destroy({ where: { createdAt: { [OP.lt]: atdate  } } })
-    UserConfirmToken.destroy({ where: { createdAt: { [OP.lt]: uctdate  } } })
-    User.destroy({ where: { lastLogin: { [OP.lt]: udate  } } })
-    UserResetPasswordToken.destroy({ where: { createdAt: { [OP.lt]: urptdate  } } })
+    await AuthToken.destroy({ where: { createdAt: { [OP.lt]: atdate  } } })
+    await UserConfirmToken.destroy({ where: { createdAt: { [OP.lt]: uctdate  } } })
+    await User.destroy({ where: { lastLogin: { [OP.lt]: udate  } } })
+    await UserResetPasswordToken.destroy({ where: { createdAt: { [OP.lt]: urptdate  } } })
     console.log('doDbMaintenance end')
 
   }catch(err){
     console.log('doDbMaintenance error: ' + err)
   }
 
+}
+
+FilePendingDeletion.checkFilePendingDeletion = async (streamableDir) => {
+  try{
+    console.log('FilePendingDeletion.checkFilePendingDeletion start')
+    var fpddate = new Date();
+    fpddate.setDate( fpddate.getDate() - 1 );
+
+    const fpds = await FilePendingDeletion.findAll({where: { createdAt: { [OP.lt]: fpddate  } }})
+
+    for(const f of fpds ){
+      path = Path.join(streamableDir, f.dirname)
+      console.log(`Deleting content of ${path}`)
+      fs.rmSync(path, {recursive: true})
+      await f.destroy();
+    }
+
+    console.log('FilePendingDeletion.checkFilePendingDeletion end')
+  }catch(err){
+    console.log('FilePendingDeletion.checkFilePendingDeletion error: ' + err)
+  }
 }
 
 module.exports.Tag = Tag;
@@ -777,3 +825,4 @@ module.exports.Comment = Comment;
 module.exports.User = User;
 module.exports.Userpendingupload = Userpendingupload;
 module.exports.doDbMaintenance = doDbMaintenance;
+module.exports.FilePendingDeletion = FilePendingDeletion;

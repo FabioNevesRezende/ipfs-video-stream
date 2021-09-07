@@ -27,7 +27,7 @@ if (!fs.existsSync(imagesDir)) {
 }
 
 const db = require('./persistence/db')
-const {User,File,Comment,Userpendingupload,doDbMaintenance} = require('./persistence/models')
+const {User,File,Comment,Userpendingupload,doDbMaintenance,FilePendingDeletion} = require('./persistence/models')
 const AuthMiddleware = require('./middleware/auth')
 const validateVideoInput = require('./middleware/validateVideoInput')
 const validateSingUp = require('./middleware/validateSingup')
@@ -344,7 +344,8 @@ async function main () {
                         console.log('Error: failed to download the file')
                         return res.status(500).send(err)
                     }
-                    const tempDir = Path.join(streamableDir, `${fileName}-${Date.now().toString()}`).replace(/(\s+)/g, '-')
+                    const tempDirDate = `${fileName}-${Date.now().toString()}`.replace(/(\s+)/g, '-')
+                    const tempDir = Path.join(streamableDir, tempDirDate)
                     const pendingId = await Userpendingupload.newUpload(req.user.id, fileName)
 
                     try{
@@ -353,6 +354,7 @@ async function main () {
                         if(err.code === 'EEXIST')
                             console.log(`file ${tempDir} already exists`)
                     }
+                    FilePendingDeletion.schedule(tempDirDate)
 
                     ffmpeg.ffprobe(fileName, (error, metadata) => {
                         try{
@@ -420,10 +422,7 @@ async function main () {
                                                 await File.associate(category.trim(), dirCid)
                                             }
 
-                                            if(!req.user.hostIpfsCopy){
-                                                await sleep(60000) // sleep to wait propagate the cids to ipfs network, 60 seconds chosen arbitrarily
-                                                fs.rmSync(tempDir, { recursive: true })
-                                            } else {
+                                            if(req.user.hostIpfsCopy){
                                                 pinCidToPinataCloud(dirCid)
                                             }
 
@@ -863,6 +862,9 @@ async function main () {
     })
 
     setInterval(doDbMaintenance, 864000)    
+    setInterval(() => {
+        FilePendingDeletion.checkFilePendingDeletion(streamableDir)
+    }, 120000)    
 }
 
 main()
