@@ -27,7 +27,15 @@ if (!fs.existsSync(imagesDir)) {
 }
 
 const db = require('./persistence/db')
-const {User,File,Comment,Userpendingupload,doDbMaintenance,FilePendingDeletion} = require('./persistence/models')
+const {
+    User,
+    File,
+    Comment,
+    Userpendingupload,
+    doDbMaintenance,
+    FilePendingDeletion,
+    UserFileRepeat} = require('./persistence/models')
+
 const AuthMiddleware = require('./middleware/auth')
 const validateVideoInput = require('./middleware/validateVideoInput')
 const validateSingUp = require('./middleware/validateSingup')
@@ -105,6 +113,7 @@ async function main () {
 
     const goProfile = async (req, res, args) => {
         const user = await User.withProfileData(req.user.id)
+        user.files = user.files.concat(await UserFileRepeat.allByUserId(req.user.id))
         return goPage('profile', req, res, {...args, csrfToken: req.csrfToken(), user })
     }
 
@@ -257,11 +266,12 @@ async function main () {
                             req.user.disliked = true
                     }
                 }
-                
+                const alsoPostedBy = await UserFileRepeat.allByFileCid(req.query.filehash)
                 return goPage('watch', req, res, { 
                     file: f,
                     csrfToken: req.csrfToken(),
-                    user: req.user
+                    user: req.user,
+                    alsoPostedBy
                 })
 
             }
@@ -416,7 +426,9 @@ async function main () {
                                             await pinFile(dirCid)
                                             requestCidToIpfsNetwork(dirCid)
                                             const newFile = {originalFileName: fileName, cid: dirCid, op: req.user.id, description, duration: file.duration}
-                                            await File.persist(newFile)
+                                            if(!await File.persist(newFile)){
+                                                UserFileRepeat.associate(req.user.id, dirCid)
+                                            }
                                             await File.indexFile({...newFile, categories: categories})
                                             for(const category of categories.split(',')){
                                                 await File.associate(category.trim(), dirCid)

@@ -450,6 +450,69 @@ User.belongsToMany(File, { through: FileReaction })
 
 File.belongsToMany(User, { through: FileReaction })
 
+const UserFileRepeat = database.define('userfilerepeat', {},
+{
+  timestamps: false
+}
+)
+
+User.belongsToMany(File, { through: UserFileRepeat })
+
+File.belongsToMany(User, { through: UserFileRepeat })
+
+UserFileRepeat.associate = async (userId, fileCid) => {
+  try{
+    const testExists = await File.findOne({ where: { op: userId, cid: fileCid } })
+    if(testExists) 
+      return;
+
+    await UserFileRepeat.create({userId, fileCid})
+  }catch(err){
+    console.log(`UserFileRepeat.associate error: ${err}`)
+  }
+}
+
+UserFileRepeat.allByUserId = async (userId) => {
+  try{
+
+  const files = await database.query(
+    'SELECT f.cid, f.originalFileName, f.duration, u.id \
+    FROM files f \
+    inner join userfilerepeats ufr on ufr.fileCid = f.cid \
+    inner join users u on u.id = ufr.userId \
+    WHERE u.id = :userId',
+    {
+      replacements: { userId },
+      type: QueryTypes.SELECT
+    }
+  );
+
+    return files;
+  }catch(err){
+    console.log(`UserFileRepeat.allByUserId error: ${err}`)
+  }
+}
+
+UserFileRepeat.allByFileCid = async (fileCid) => {
+  try{
+
+    const files = await database.query(
+      'SELECT f.cid, f.originalFileName, f.duration, u.username, u.id, u.profilePhotoCid \
+      FROM files f \
+      inner join userfilerepeats ufr on ufr.fileCid = f.cid \
+      inner join users u on u.id = ufr.userId \
+      WHERE f.cid = :fileCid',
+      {
+        replacements: { fileCid },
+        type: QueryTypes.SELECT
+      }
+    );
+  
+      return files;
+    }catch(err){
+      console.log(`UserFileRepeat.allByFileCid error: ${err}`)
+    }
+}
 
 File.react = async (fileCid, userId, num) => {
   try{
@@ -567,7 +630,10 @@ File.persist = async (args) => {
       const file1 = await File.create(args) 
   } catch (err){
     console.log('File.persist error ' + err)
+    if(err.name === "SequelizeUniqueConstraintError")
+      return false
   }
+  return true
 };
 
 File.getVideosHomePage = async() => {
@@ -826,3 +892,4 @@ module.exports.User = User;
 module.exports.Userpendingupload = Userpendingupload;
 module.exports.doDbMaintenance = doDbMaintenance;
 module.exports.FilePendingDeletion = FilePendingDeletion;
+module.exports.UserFileRepeat = UserFileRepeat;

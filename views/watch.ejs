@@ -17,7 +17,17 @@
                 <%if(params.file.op.profilePhotoCid){%>
                     <img class="circle-image" src="https://gateway.ipfs.io/ipfs/<%= params.file.op.profilePhotoCid %>" width="45" height="45">
                 <%}%>
-                </a>
+                </a> &nbsp;
+                <%if(params.alsoPostedBy.length > 0){%>
+                    Also posted by:
+                    <%for(const apb of params.alsoPostedBy) { %> 
+                        <a href="/user/<%= apb.id %>" target="_blank"><%= apb.username %>
+                            <%if(apb.profilePhotoCid){%>
+                                <img class="circle-image" src="https://gateway.ipfs.io/ipfs/<%= apb.profilePhotoCid %>" width="45" height="45">
+                            <%}%>
+                        </a> &nbsp;
+                    <% } %> 
+                <% } %>
                 <br>
             <%for(const tag of params?.file?.tags){%>
                 <span class="badge bg-secondary">#<%= tag.name %></span>
