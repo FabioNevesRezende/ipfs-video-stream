@@ -73,7 +73,7 @@ User.updateProfilePhoto = async (user, cid) => {
 
 const UserConfirmToken = database.define('userconfirmtoken', {
   token: {
-      type: Sequelize.STRING(512),
+      type: Sequelize.STRING(768),
       allowNull: false,
       unique: true,
       primaryKey: true
