@@ -56,6 +56,7 @@ const validateSearch = require('./middleware/validateSearch')
 const validateDeleteUser = require('./middleware/validateDeleteUser')
 const validateGetUser = require('./middleware/validateGetUser')
 const validateReact = require('./middleware/validateReact')
+const validateUploadCid = require('./middleware/validateUploadCid')
 var sgTransport = require('nodemailer-sendgrid-transport');
 
 const {goPage, sleep} = require('./utils')
@@ -720,6 +721,32 @@ async function main () {
         } catch(err){
             console.log('app.get/noscript error ' + err)
             return goPage('error', req, res, { errorMessage: 'Internal error' })
+        }
+    })
+
+    app.post('/uploadCid', validateUploadCid, AuthMiddleware, async (req, res) => {
+        try {
+            const fileName = req.body.fileName
+            const categories = req.body.categories
+            const description = req.body.description
+            const cid = req.body.cid
+
+            const newFile = {originalFileName: fileName, cid, userId: req.user.id, description}
+            await File.persist(newFile)
+            File.indexFile({...newFile, categories: categories})
+            for(const category of categories.split(' ')){
+                await File.associate(category.trim(), cid)
+            }
+            requestCidToIpfsNetwork(cid)
+
+            if(req.user.hostIpfsCopy){
+                pinCidToPinataCloud(cid)
+            }
+
+            return res.redirect('/profile')
+        } catch(err) {
+            console.log('app.post/uploadCid error ' + err)
+            return goPage('error', req, res, { errorMessage: 'Error processing request' })
         }
     })
     
