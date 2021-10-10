@@ -54,6 +54,7 @@
         const showLoading = () => {
             console.log("showing loading bar")
             document.getElementById("loaderbg").style.display = "block";
+            document.getElementById("loadermsg").innerHTML = "Converting to IPFS stream format, obtaining file metadata";
 
             $("#upload").prop('disabled', true);
             $("#fileName").prop('disabled', true);
@@ -81,77 +82,80 @@
         
         ffmpeg.setLogger(({ type, message }) => {
             console.log(type, message);  
-            document.getElementById("loadermsg").innerHTML = "Converting to IPFS stream format " + message;
+            document.getElementById("loadermsg").innerHTML = "Converting to IPFS stream format, " + message;
         });
 
-        const transcode = async () => {
+        const transcode = async (files) => {
             console.log('Running ffmpeg')
-            showLoading();
             window.URL = window.URL || window.webkitURL;
-            files = document.getElementById("inputfile").files
             const { name } = files[0];
 
             var video = document.createElement('video');
             video.preload = 'metadata';
 
             video.onloadedmetadata = async () => {
-                window.URL.revokeObjectURL(video.src);
-                var duration = video.duration;
-                console.log(`Video duration: ${duration}`);
+                try{
+                    window.URL.revokeObjectURL(video.src);
+                    var duration = video.duration;
+                    console.log(`Video duration: ${duration}`);
 
-                if(window.ipfsNode){
-                    console.log("ipfs node already defined in window object")
-                    ipfs = window.ipfsNode
-                }
-                else {
-                    console.log("ipfs node undefined, creating one")
-                    await createNode()
-                    ipfs = window.ipfsNode
-                }
+                    if(window.ipfsNode){
+                        console.log("ipfs node already defined in window object")
+                        ipfs = window.ipfsNode
+                    }
+                    else {
+                        console.log("ipfs node undefined, creating one")
+                        await createNode()
+                        ipfs = window.ipfsNode
+                    }
 
-                await ipfs.files.mkdir(`/videos/${name}` , {parents: true});
+                    await ipfs.files.mkdir(`/videos/${name}` , {parents: true});
 
-                await ffmpeg.load();
-                ffmpeg.FS('writeFile', name, await fetchFile(files[0]));
-                await ffmpeg.run('-i', name, '-hls_time', '10', '-hls_playlist_type', 'vod', '-hls_segment_filename', 'part_%03d.ts', 'master.m3u8');
+                    await ffmpeg.load();
+                    ffmpeg.FS('writeFile', name, await fetchFile(files[0]));
+                    await ffmpeg.run('-i', name, '-hls_time', '10', '-hls_playlist_type', 'vod', '-hls_segment_filename', 'part_%03d.ts', 'master.m3u8');
 
-                const mContet = ffmpeg.FS('readFile', 'master.m3u8')
-                const data = (new TextDecoder().decode(mContet)).split('\n')
-                console.log('master.m3u8: ')
-                console.log(data)
-                await ipfs.files.write(`/videos/${name}/master.m3u8`, mContet, { create: true })
-                dirStat = await ipfs.files.stat(`/videos/${name}/master.m3u8`)
-                dirCid = dirStat.cid.toString()
-                await ipfs.pin.add(dirCid)
-                for(const d of data){
-                    if(d.includes('part_')){
-                    const part = ffmpeg.FS('readFile', d);
-                    console.log(`${d}: `)
-                    console.log(part)
-
-                    console.log(`writing ipfs file: /videos/${name}/${d}`)
-                    await ipfs.files.write(`/videos/${name}/${d}`, part, { create: true })
-                    dirStat = await ipfs.files.stat(`/videos/${name}/${d}`)
+                    const mContet = ffmpeg.FS('readFile', 'master.m3u8')
+                    const data = (new TextDecoder().decode(mContet)).split('\n')
+                    console.log('master.m3u8: ')
+                    console.log(data)
+                    await ipfs.files.write(`/videos/${name}/master.m3u8`, mContet, { create: true })
+                    dirStat = await ipfs.files.stat(`/videos/${name}/master.m3u8`)
                     dirCid = dirStat.cid.toString()
                     await ipfs.pin.add(dirCid)
-                    }
-                }
-                await ffmpeg.run('-i', name, '-ss', "00:00:05", '-frames:v', '1', 'thumb.png' );
-                const filecontent = ffmpeg.FS('readFile', 'thumb.png')
-                await ipfs.files.write(`/videos/${name}/thumb.png`, filecontent, { create: true })
-                dirStat = await ipfs.files.stat(`/videos/${name}/thumb.png`)
-                dirCid = dirStat.cid.toString()
-                await ipfs.pin.add(dirCid)
-                dirStat = await ipfs.files.stat(`/videos/${name}`)
-                dirCid = dirStat.cid.toString()
-                await ipfs.pin.add(dirCid)
-                document.getElementById("inputfile").value = document.getElementById("inputfile").defaultValue
-                console.log(`dir cid: ${dirCid}`)
-                returnPageInitState();
-                document.getElementById("cid").value = dirCid;
-                document.getElementById("duration").value = duration;
-                document.getElementById("sendVideo").submit();
+                    for(const d of data){
+                        if(d.includes('part_')){
+                        const part = ffmpeg.FS('readFile', d);
+                        console.log(`${d}: `)
+                        console.log(part)
 
+                        console.log(`writing ipfs file: /videos/${name}/${d}`)
+                        await ipfs.files.write(`/videos/${name}/${d}`, part, { create: true })
+                        dirStat = await ipfs.files.stat(`/videos/${name}/${d}`)
+                        dirCid = dirStat.cid.toString()
+                        await ipfs.pin.add(dirCid)
+                        }
+                    }
+                    await ffmpeg.run('-i', name, '-ss', "00:00:05", '-frames:v', '1', 'thumb.png' );
+                    const filecontent = ffmpeg.FS('readFile', 'thumb.png')
+                    await ipfs.files.write(`/videos/${name}/thumb.png`, filecontent, { create: true })
+                    dirStat = await ipfs.files.stat(`/videos/${name}/thumb.png`)
+                    dirCid = dirStat.cid.toString()
+                    await ipfs.pin.add(dirCid)
+                    dirStat = await ipfs.files.stat(`/videos/${name}`)
+                    dirCid = dirStat.cid.toString()
+                    await ipfs.pin.add(dirCid)
+                    document.getElementById("inputfile").value = document.getElementById("inputfile").defaultValue
+                    console.log(`dir cid: ${dirCid}`)
+                    returnPageInitState();
+                    document.getElementById("cid").value = dirCid;
+                    document.getElementById("duration").value = duration;
+                    document.getElementById("sendVideo").submit();
+                }catch(err){
+                    alert(err)
+                    returnPageInitState();
+                    
+                }
 
             }
 
@@ -178,7 +182,23 @@
                 return false;
             }
 
-            return await transcode()
+            files = document.getElementById("inputfile").files
+            console.log("file type: ", files[0].type)
+
+            if(files[0].type !== "video/webm" && files[0].type !== "video/mp4"){
+                alert("Unsupported file type, try Mp4 or Webm")
+                return false;
+
+            }
+
+            showLoading();
+            try{
+                return await transcode(files)
+            }catch(err){
+                alert(err)
+                returnPageInitState();
+            }
+            return false;
             // return false to cancel form action
         });
 
