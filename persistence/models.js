@@ -378,7 +378,7 @@ const File = database.define('file', {
         allowNull: true
     },
     duration: {
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING(64),
         allowNull: true
     },
     size: {

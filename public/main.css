@@ -176,3 +176,37 @@ body {
 
 #faCopyMoneroAddressToClipboard:hover {
   cursor: pointer; }
+
+#loaderbg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  background-color: rgba(100, 100, 100, 0.5);
+  padding: 15px;
+  width: 350px;
+  height: 350px;
+  border-radius: 20px; }
+
+#loader {
+  z-index: 2;
+  width: 140px;
+  height: 140px;
+  border: 16px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 16px solid #3498db;
+  -webkit-animation: spin 2s linear infinite;
+  animation: spin 2s linear infinite;
+  margin: auto; }
+
+@-webkit-keyframes spin {
+  0% {
+    -webkit-transform: rotate(0deg); }
+  100% {
+    -webkit-transform: rotate(360deg); } }
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg); }
+  100% {
+    transform: rotate(360deg); } }

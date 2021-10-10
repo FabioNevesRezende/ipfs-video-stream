@@ -335,6 +335,10 @@ async function main () {
 
     app.get('/upload', AuthMiddleware, (req, res) => {
         try{
+            res.set({
+                'Cross-Origin-Opener-Policy': 'same-origin',
+                'Cross-Origin-Embedder-Policy': 'require-corp'
+            })
             return goPage('upload', req, res, { csrfToken: req.csrfToken(), user: req.user })
         } catch(err){
             console.log('app.get/upload error ' + err)
@@ -726,15 +730,15 @@ async function main () {
 
     app.post('/uploadCid', validateUploadCid, AuthMiddleware, async (req, res) => {
         try {
-            const fileName = req.body.fileName
             const categories = req.body.categories
-            const description = req.body.description
             const cid = req.body.cid
 
-            const newFile = {originalFileName: fileName, cid, userId: req.user.id, description}
-            await File.persist(newFile)
-            File.indexFile({...newFile, categories: categories})
-            for(const category of categories.split(' ')){
+            const newFile = {originalFileName: req.body.fileName, cid, op: req.user.id, description : req.body.description, duration : req.body.duration}
+            if(!await File.persist(newFile)){
+                UserFileRepeat.associate(req.user.id, dirCid)
+            }
+            File.indexFile({...newFile, categories})
+            for(const category of categories.split(',')){
                 await File.associate(category.trim(), cid)
             }
             requestCidToIpfsNetwork(cid)
@@ -743,7 +747,7 @@ async function main () {
                 pinCidToPinataCloud(cid)
             }
 
-            return res.redirect('/profile')
+            return res.redirect(`/watch?filehash=${cid}`)
         } catch(err) {
             console.log('app.post/uploadCid error ' + err)
             return goPage('error', req, res, { errorMessage: 'Error processing request' })
