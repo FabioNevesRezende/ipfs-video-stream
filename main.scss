@@ -237,3 +237,23 @@ body {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+.msgEnvelope{
+  color: #fff; 
+  font-size: 35px !important;
+}
+
+.msgUl{
+  height: 300px; 
+  width: 300px; 
+  overflow-y: scroll; 
+  overflow-x: hidden;
+}
+
+.msgItem{
+  width: 100%;
+  padding: .5rem;
+  text-decoration: none;
+  color: #fff;
+  border: 0;
+}

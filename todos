@@ -13,6 +13,8 @@ validação mimetype videos e tratamento de erros ffmpeg (x)
 
     revisar try/catchs (x)
 
+logs de auditoria
+denuncias de conteúdo
 
 profile/user
     alterar email e dados (x)
@@ -21,9 +23,11 @@ profile/user
     profile photo (x)
     control user uploads (x)
     last login (x)
+    messages, followers e avisos dos seguidos
+    perfil de admin
 
 tests
-fix nodemailer to production
+fix nodemailer to production (x)
 
 production 
     remunerção
@@ -31,7 +35,7 @@ production
 manutenção/otimização
     revisar consultas desnecessárias bd
     trazer apenas campos a serem usados nas queries
-    externalizar/distribuir função do ffmpeg
+    externalizar/distribuir função do ffmpeg (x)
 
 segurança
     tokens, vazamentos, sql injection (sequelize) (x)

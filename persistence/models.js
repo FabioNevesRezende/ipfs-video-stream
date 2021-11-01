@@ -884,6 +884,98 @@ FilePendingDeletion.checkFilePendingDeletion = async (streamableDir) => {
   }
 }
 
+const Report = database.define('report', {
+  id: {
+    type: Sequelize.INTEGER,
+    autoIncrement: true,
+    allowNull: false,
+    primaryKey: true
+  },
+  type: {
+      type: Sequelize.INTEGER,
+      allowNull: false
+  }
+},
+{
+  updatedAt: false
+}
+)
+
+Report.belongsTo(User);
+
+const Message = database.define('message', {
+  id: {
+    type: Sequelize.INTEGER,
+    autoIncrement: true,
+    allowNull: false,
+    primaryKey: true
+  },
+  content: {
+      type: Sequelize.STRING(512),
+      allowNull: false
+  },
+  read: {
+    type: Sequelize.BOOLEAN,
+    defaultValue: false,
+    allowNull: false
+  }
+},
+{
+  timestamps: false
+}
+)
+
+Message.belongsTo(User, {as: 'from'});
+Message.belongsTo(User, {as: 'to'});
+
+
+User.receiveMessages = async (userId) => {
+  try{
+    const msgs = await Message.findAll({where: {toId: userId} })
+    return msgs
+  }catch(err){
+    console.log('User.receiveMessages error: ' + err)
+
+  }
+
+  return []
+}
+
+User.sentMessages = async (userId) => {
+  try{
+    const msgs = await Message.findAll({where: {fromId: userId} })
+    return msgs
+  }catch(err){
+    console.log('User.sentMessages error: ' + err)
+
+  }
+
+  return []
+}
+
+Message.read = async (id) => {
+  try{
+    const msg = await Message.findOne({id})
+
+    msg.read = true
+    await msg.save()
+
+  }catch(err){
+    console.log('Message.read error: ' + err)
+  }
+
+}
+
+Message.register = async (content, userId) => {
+  try{
+    await Message.create({content, userId})
+
+  }catch(err){
+    console.log('Message.register error: ' + err)
+  }
+
+}
+
 module.exports.Tag = Tag;
 module.exports.File = File;
 module.exports.AuthToken = AuthToken;
