@@ -121,9 +121,22 @@
                       <i class="fa fa-envelope-square msgEnvelope" aria-hidden="true"></i>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-dark msgUl" aria-labelledby="navbarDarkDropdownMenuLink">
-                      <li><a class="msgItem" href="#">Something else hereSomething else hereSomething else hereSomething else hereSomething else here</a></li>
-                      <li><hr class="dropdown-divider"></li>
-                      <li><a class="msgItem" href="#">Something else hereSomething else hereSomething else hereSomething else hereSomething else here</a></li>
+                      <%if(params.user.reports) { %>
+                        <%for(const report of params.user.reports) { %>
+                          <li class="li-report-<%= report.id %>">
+                            <a class="msgItem" href="#"> <a href="/watch?filehash=<%= report.fileCid %>" target="_blank">
+                              This video</a> was reported by the user <%= report.madeBy %> 
+                              <i 
+                              onclick="deleteReport(this)"
+                              data-report-id="<%= report.id %>"
+                              aria-hidden="true"
+                              class="fa fa-trash btnDeleteReport" >
+                              </i>
+
+                            </a></li>
+                          <li class="li-report-<%= report.id %>"><hr class="dropdown-divider"></li>
+                        <% } %>
+                      <% } %>
                     </ul>
                   </li>
                   <% } %>
@@ -189,6 +202,26 @@
         const copyToClipboard = () => {
           navigator.clipboard.writeText("83KNrLbCQ8Y62ZjXzExofFQE7SQLzCF7JCGXYX7TVfA9f6fVqUFMMamCDKjyXtettxE5WX1Zhyany5M4sLvyQsrR9Cndrmr");
         }
+    </script>
+    <script>
+      deleteReport = async (t) => {
+        const formData = new FormData();
+        formData.append('_csrf', '<%= params.csrfToken %>');
+        const reportId = $(t).data('report-id')
+        formData.append('id', reportId);
+
+        let resp = await fetch('deleteReport', 
+            { method: "POST", 
+              body: formData }
+        );
+
+        if(resp.status === 200){
+            $(`.li-report-${reportId}`).fadeOut(300, function() { $(this).remove(); });
+        } else{
+            window.alert("Error deleting report, please try again later")
+        }
+      }
+
     </script>
     <noscript><meta http-equiv="refresh" content="0; url=/noscript" /></noscript>
 </body>

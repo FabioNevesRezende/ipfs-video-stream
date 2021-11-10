@@ -227,3 +227,12 @@ body {
   text-decoration: none;
   color: #fff;
   border: 0; }
+
+#navbarDarkDropdownMenuLink {
+  padding: 0; }
+
+.btnDeleteReport {
+  float: right; }
+
+.btnDeleteReport:hover {
+  cursor: pointer; }

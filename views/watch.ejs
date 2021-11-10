@@ -58,6 +58,12 @@
                         " >
                         </i>
 
+                        <i 
+                        data-bs-toggle="modal" data-bs-target="#modalReport" 
+                        aria-hidden="true"
+                        class="fa fa-exclamation-triangle" >
+                        </i>
+
                     </p>
                     <div class="progress">
                         <div class="progress-bar"
@@ -236,6 +242,26 @@ react = async (reaction) => {
     }
 }
 
+reportCid = async () => {
+    const formData = new FormData();
+    formData.append('cid', '<%= params.file.cid %>');
+    formData.append('_csrf', '<%= csrfToken %>');
+    const type = $('input[name=reportType]:checked').val()
+    formData.append('type', type);
+
+    let resp = await fetch('reportCid', 
+        { method: "POST", 
+          body: formData }
+    );
+
+    if(resp.status === 200){
+        $('#modalReport').modal('toggle');
+        window.alert("Report made successfully for Cid <%= params.file.cid %>")
+    } else{
+        window.alert("Error reporting, please try again later")
+    }
+}
+
 deleteComment = async (commentId) => {
     const formData = new FormData();
     formData.append('commentId', commentId);
@@ -255,3 +281,23 @@ deleteComment = async (commentId) => {
 }
 
 </script>
+<div class="modal fade" id="modalReport" tabindex="-1" aria-labelledby="modalReportLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalReportLabel">Report video</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <input type="radio" id="spam" name="reportType" value="1">
+            <label for="spam">Spam or misleading</label><br>
+            <input type="radio" id="cp" name="reportType" value="2">
+            <label for="cp">Abuse, sexual content, child pornography</label><br>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick="reportCid()">Report</button>
+        </div>
+      </div>
+    </div>
+</div>

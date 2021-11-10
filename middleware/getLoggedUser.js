@@ -1,4 +1,4 @@
-const { User, AuthToken } = require('../persistence/models');
+const { User, AuthToken, Report } = require('../persistence/models');
 const {goPage} = require('../utils')
 
 module.exports = async function(req, res, next) {
@@ -16,6 +16,9 @@ module.exports = async function(req, res, next) {
       if (user) {
         console.log(`middleware found user ${user.username}`)
         req.user = user;
+        if(user.adminLevel > 0){
+          user.reports = (await Report.getAll())[0]
+        }
       }
     }
   }

@@ -34,7 +34,8 @@ const {
     Userpendingupload,
     doDbMaintenance,
     FilePendingDeletion,
-    UserFileRepeat} = require('./persistence/models')
+    UserFileRepeat,
+    Report} = require('./persistence/models')
 
 const AuthMiddleware = require('./middleware/auth')
 const validateVideoInput = require('./middleware/validateVideoInput')
@@ -57,6 +58,8 @@ const validateDeleteUser = require('./middleware/validateDeleteUser')
 const validateGetUser = require('./middleware/validateGetUser')
 const validateReact = require('./middleware/validateReact')
 const validateUploadCid = require('./middleware/validateUploadCid')
+const validateReportCid = require('./middleware/validateReportCid')
+const validateDeleteReport = require('./middleware/validateDeleteReport')
 var sgTransport = require('nodemailer-sendgrid-transport');
 
 const {goPage, sleep} = require('./utils')
@@ -753,7 +756,36 @@ async function main () {
             return goPage('error', req, res, { errorMessage: 'Error processing request' })
         }
     })
-    
+
+    app.post('/reportCid', AuthMiddleware, validateReportCid,  async (req, res) => {
+        try {
+            let r = await Report.register(req.user.id, undefined, req.body.cid, req.body.type)
+
+            if(r){
+                return res.status(200).json({})
+            }
+            else {
+                return res.status(400).json({})
+            }
+            
+        } catch(err) {
+            console.log('app.post/report error ' + err)
+            return res.status(400).json({})
+        }
+    })
+
+    app.post('/deleteReport', AuthMiddleware, validateDeleteReport,  async (req, res) => {
+        try {
+            await Report.delete(req.body.id)
+
+            return res.status(200).json({})
+                        
+        } catch(err) {
+            console.log('app.post/deleteReport error ' + err)
+            return res.status(400).json({})
+        }
+    })
+
     const addFile = async (fileName, wrapWithDirectory=false) => {
         const file = fs.readFileSync(fileName)
         const fileAdded = await ipfs.add({content: file}, { wrapWithDirectory })

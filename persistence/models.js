@@ -884,7 +884,7 @@ FilePendingDeletion.checkFilePendingDeletion = async (streamableDir) => {
   }
 }
 
-const Report = database.define('report', {
+const ReportType = database.define('reporttype', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
@@ -892,8 +892,20 @@ const Report = database.define('report', {
     primaryKey: true
   },
   type: {
-      type: Sequelize.INTEGER,
+      type: Sequelize.STRING('50'),
       allowNull: false
+  }
+},
+{
+  timestamps: false
+})
+
+const Report = database.define('report', {
+  id: {
+    type: Sequelize.INTEGER,
+    autoIncrement: true,
+    allowNull: false,
+    primaryKey: true
   }
 },
 {
@@ -901,7 +913,47 @@ const Report = database.define('report', {
 }
 )
 
-Report.belongsTo(User);
+Report.belongsTo(User, {as: 'madeBy'});
+Report.belongsTo(User, {as: 'reported'});
+Report.belongsTo(ReportType, {as: 'type'});
+Report.belongsTo(File);
+
+Report.register = async (madeById,reportedId,fileCid,type) => {
+  try{
+    const rep = await Report.create({madeById,reportedId,fileCid,typeId: type})
+
+    return rep
+
+  }catch(err){
+    console.log('Report.register error: ' + err)
+  }
+}
+
+Report.delete = async (id) => {
+  try{
+    await Report.destroy({ where: { id }})
+
+  }catch(err){
+    console.log('Report.delete error: ' + err)
+  }
+}
+
+Report.getAll = async () => {
+  try{
+
+    const reports = await database.query(
+      'SELECT r.id, r.typeId, rt.type, r.fileCid, r.madeById, r.reportedId, u1.username as reportedName, u2.username as madeBy \
+      FROM reports r \
+      left join users u1 on u1.id = r.reportedId \
+      inner join users u2 on u2.id = r.madeById \
+      inner join reporttypes rt on rt.id = r.typeId '
+    );
+
+    return reports;
+  }catch(err){
+    console.log(`Report.getAll error: ${err}`)
+  }
+}
 
 const Message = database.define('message', {
   id: {
@@ -978,6 +1030,7 @@ Message.register = async (content, userId) => {
 
 module.exports.Tag = Tag;
 module.exports.File = File;
+module.exports.Report = Report;
 module.exports.AuthToken = AuthToken;
 module.exports.Comment = Comment;
 module.exports.User = User;
