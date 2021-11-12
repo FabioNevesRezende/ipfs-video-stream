@@ -946,7 +946,8 @@ Report.getAll = async () => {
       FROM reports r \
       left join users u1 on u1.id = r.reportedId \
       inner join users u2 on u2.id = r.madeById \
-      inner join reporttypes rt on rt.id = r.typeId '
+      inner join reporttypes rt on rt.id = r.typeId ',
+      { type: QueryTypes.SELECT }
     );
 
     return reports;
