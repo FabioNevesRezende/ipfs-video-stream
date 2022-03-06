@@ -124,7 +124,6 @@ async function main () {
     app.get('/randomVideos', async(req,res) => {
         try{
             const vids = await File.getRandomCids();
-            console.log(`\n\n\n/randomVideos returning: ${JSON.stringify(vids)}`)
             return res.status(200).json(vids)
         } catch(err){
             console.log('app.get/randomVideos error ' + err)

@@ -33,13 +33,11 @@
       $.getJSON(url, (data) => {
         cids = {}
         for(const file of data){
-          for(const tag of file.tags){
-            if(cids[tag.name] && !cids[tag.name].includes(file.cid)) { 
-              cids[tag.name].push(file.cid)
-            }  else if(!cids[tag.name]) {
-              cids[tag.name] = []; 
-              cids[tag.name].push(file.cid)
-            }
+          if(cids[file.name] && !cids[file.name].includes(file.cid) ){
+              cids[file.name].push(file.cid)
+          } else if(!cids[file.name]) {
+              cids[file.name] = []; 
+              cids[file.name].push(file.cid)
           }
         }
         localStorage.setItem('cids', JSON.stringify(cids))

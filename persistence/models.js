@@ -647,7 +647,14 @@ File.getVideosHomePage = async() => {
 };
 
 File.getRandomCids = async() => {
-  const files = await File.findAll({include: [ {model: Tag, attributes: ['name'] }], attributes: ['cid'] })
+  const files = await database.query(
+    'SELECT f.cid, ft.tagName as name  \
+    FROM files f \
+    inner join filetags ft on f.cid = ft.fileCid',
+    {
+      type: QueryTypes.SELECT
+    }
+  );
 
   return files;
 };
