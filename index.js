@@ -415,7 +415,7 @@ async function main () {
 
                                     await ffmpeg(fileName).takeScreenshots({
                                         count: 1,
-                                        timemarks: [ '5' ] 
+                                        timemarks: [ '00:00:00.001' ] 
                                     }, tempDir).on('end', async (err) => {
                                         try{
                                             if(err) console.log('Error generating thumbnail from video')

@@ -136,7 +136,7 @@
                         await ipfs.pin.add(dirCid)
                         }
                     }
-                    await ffmpeg.run('-i', name, '-ss', "00:00:05", '-frames:v', '1', 'thumb.png' );
+                    await ffmpeg.run('-i', name, '-ss', "00:00:00.001", '-frames:v', '1', 'thumb.png' );
                     const filecontent = ffmpeg.FS('readFile', 'thumb.png')
                     await ipfs.files.write(`/videos/${name}/thumb.png`, filecontent, { create: true })
                     dirStat = await ipfs.files.stat(`/videos/${name}/thumb.png`)
