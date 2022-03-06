@@ -196,7 +196,7 @@ async function main () {
             const { username, password } = req.body;
 
             if (!username || !password) {
-                return goPage('error', req, res, { errorMessage: 'Invalid request' })
+                return goPage('error', req, res, { errorMessage: 'Invalid request' }, 403)
             }
 
             let user = await User.authenticate(username, password)
@@ -212,7 +212,7 @@ async function main () {
 
         } catch (err) {
             console.log('app.post/login error ' + err)
-            return goPage('error', req, res, { errorMessage: 'Invalid credentials' })
+            return goPage('error', req, res, { errorMessage: 'Invalid credentials' }, 401)
         }
 
     })
