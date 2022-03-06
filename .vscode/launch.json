@@ -7,7 +7,7 @@
         {
             "type": "pwa-node",
             "request": "launch",
-            "runtimeExecutable": "node",
+            "runtimeExecutable": "nodemon",
             "name": "Debugar",
             "skipFiles": [
                 "<node_internals>/**"
