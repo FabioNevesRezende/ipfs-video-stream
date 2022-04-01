@@ -30,7 +30,7 @@
     "express-fileupload": "^1.2.1",
     "express-validator": "^6.10.0",
     "fluent-ffmpeg": "^2.1.2",
-    "ipfs": "^0.61.0",
+    "ipfs": "^0.62.1",
     "it-all": "^1.0.5",
     "it-to-buffer": "^2.0.0",
     "jsonwebtoken": "^8.5.1",
