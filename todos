@@ -14,7 +14,7 @@ validação mimetype videos e tratamento de erros ffmpeg (x)
     revisar try/catchs (x)
 
 logs de auditoria
-denuncias de conteúdo
+denuncias de conteúdo (x)
 
 profile/user
     alterar email e dados (x)
@@ -51,10 +51,6 @@ integração
     SEO
 
 ipfs live stream
-
-erro:
-Deleting content of /home/fabio/src/ipfs-video-stream/streamable/hhhhhhhhhh-1646524593780
-FilePendingDeletion.checkFilePendingDeletion error: Error: ENOENT: no such file or directory, stat '/home/fabio/src/ipfs-video-stream/streamable/hhhhhhhhhh-1646524593780'
 
 adicionar conteudos gratuitos livres de direitos autorais
     https://www.publicdomaintorrents.info/nshowcat.html?category=ALL
