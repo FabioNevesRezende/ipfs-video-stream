@@ -72,6 +72,17 @@ async function main () {
     const ipfs = await IPFS.create({silent: true, repo: repoPath })
     const app = express()
 
+    if(process.env.MAIL_ENGINE == "gmail")
+    {
+        var transporter = nodeMailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.FROM_EMAIL,
+                pass: process.env.FROM_EMAIL_PASSWORD   
+            }
+        });
+    
+    } else if(process.env.MAIL_ENGINE == "sendgrid") {
     var transporter = nodeMailer.createTransport(sgTransport({
         auth: {
             api_key: process.env.SENDGRID_API_KEY
@@ -79,6 +90,8 @@ async function main () {
       }
       ));
 
+    }
+    console.log(`main transporter de email escolhido: ${process.env.MAIL_ENGINE }` )
 
     const csrfMiddleware = csurf({
         cookie: true
