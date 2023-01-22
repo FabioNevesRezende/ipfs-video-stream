@@ -22,18 +22,22 @@
     "@ffmpeg-installer/ffmpeg": "^1.0.17",
     "bcrypt": "^5.0.1",
     "cookie-parser": "^1.4.5",
+    "cookie-session": "^2.0.0",
     "cors": "^2.8.5",
     "csurf": "^1.11.0",
+    "dddos": "^0.1.2",
     "dotenv": "^8.2.0",
     "ejs": "^3.1.6",
     "express": "^4.17.1",
     "express-fileupload": "^1.2.1",
     "express-validator": "^6.10.0",
     "fluent-ffmpeg": "^2.1.2",
-    "ipfs": "^0.61.0",
+    "helmet": "^6.0.1",
+    "ipfs": "^0.65.0",
+    "ipfs-core": "^0.17.0",
     "it-all": "^1.0.5",
     "it-to-buffer": "^2.0.0",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "mysql2": "^2.2.5",
     "nodemailer": "^6.5.0",
     "nodemailer-sendgrid-transport": "^0.2.0",
@@ -44,6 +48,6 @@
     "chai-http": "^4.3.0",
     "cheerio": "^1.0.0-rc.10",
     "mocha": "^9.0.1",
-    "nodemon": "^2.0.7"
+    "nodemon": "^2.0.20"
   }
 }

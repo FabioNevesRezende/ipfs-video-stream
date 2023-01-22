@@ -1,4 +1,3 @@
-const IPFS = require('ipfs');
 const express = require('express');
 const fileUpload = require('express-fileupload')
 const ffmpeg = require('fluent-ffmpeg');
@@ -7,6 +6,7 @@ ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 const fs = require('fs');
 const Path = require('path');
 const cookieParser = require('cookie-parser');
+//const helmet = require('helmet')
 const csurf = require('csurf');
 const nodeMailer = require('nodemailer');
 const https = require('https')
@@ -68,8 +68,9 @@ const LIKE = 0
 const DISLIKE = 1
 
 async function main () {
+    const { create } = await import('ipfs-core')
     const repoPath = '.ipfs-node-main'
-    const ipfs = await IPFS.create({silent: true, repo: repoPath })
+    const ipfs = await create({silent: true, repo: repoPath })
     const app = express()
 
     if(process.env.MAIL_ENGINE == "gmail")
@@ -97,6 +98,20 @@ async function main () {
         cookie: true
     });
     
+    //app.use(helmet())
+    // app.use(helmet({
+    //     contentSecurityPolicy: {
+    //         directives: {
+    //             defaultSrc: ["'self'"],
+    //             scriptSrc: ["'self'", "'unsafe-inline'"],
+    //             styleSrc: ["'self'"],
+    //             imgSrc: ["*", 'data:'],
+    //             connectSrc: ["'self'"],
+    //             frameSrc: ["'self'"],
+    //         },
+    //     }
+    // }));
+    app.disable('x-powered-by')
     app.set('view engine', 'ejs')
     app.use(express.json())
     app.use(express.urlencoded({ extended: true}))
@@ -119,7 +134,6 @@ async function main () {
     const goHome = async (req, res, args) => {
         if(!args.vids){
             const vids = await File.getVideosHomePage();
-            console.log('vids')
             console.log(JSON.stringify(vids))
             args.vids = vids;
         }
@@ -217,7 +231,7 @@ async function main () {
                 if(!user.confirmed)
                     return goHome(req, res, {status: 'User email not confirmed'})
 
-                res.cookie('authToken', user.authToken, { maxAge: 8320000, httpOnly: true });
+                res.cookie('authToken', user.authToken, { maxAge: 8320000, httpOnly: true, secure: true });
 
                 return goHome(req, res, {user})
             } else console.log('Usuário não autenticado')
