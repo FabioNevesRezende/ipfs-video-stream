@@ -11,6 +11,7 @@ const csurf = require('csurf');
 const nodeMailer = require('nodemailer');
 const https = require('https')
 const cors = require('cors')
+const DDDoS = require('dddos');
 require('dotenv').config()
 
 const streamableDir = Path.join(__dirname, 'streamable')
@@ -130,6 +131,119 @@ async function main () {
     app.use(csrfMiddleware);
     app.use(handleCsrfError)
     app.use(cors())
+
+    const ddos = new DDDoS({
+            rules: [{
+                string: '/',
+                maxWeight: 20
+            },{
+                string: '/login',
+                maxWeight: 20
+            },{
+                string: '/logout',
+                maxWeight: 20
+            },{
+                string: '/singup',
+                maxWeight: 20
+            },{
+                string: '/about',
+                maxWeight: 20
+            },{
+                string: '/randomVideos',
+                maxWeight: 20
+            },{
+                string: '/profile',
+                maxWeight: 20
+            },{
+                string: '/changePassword',
+                maxWeight: 20
+            },{
+                string: '/watch',
+                maxWeight: 20
+            },{
+                string: '/upload',
+                maxWeight: 20
+            },{
+                string: '/video',
+                maxWeight: 10
+            },{
+                string: '/forgotPassword',
+                maxWeight: 20
+            },{
+                string: '/validateSingupToken',
+                maxWeight: 20
+            },{
+                string: '/newSingupToken',
+                maxWeight: 20
+            },{
+                string: '/requestResetPassword',
+                maxWeight: 20
+            },{
+                string: '/resetPassword',
+                maxWeight: 20
+            },{
+                string: '/changeProfilePhoto',
+                maxWeight: 20
+            },{
+                string: '/comment',
+                maxWeight: 20
+            },{
+                string: '/reindex',
+                maxWeight: 20
+            },{
+                string: '/deleteComment',
+                maxWeight: 20
+            },{
+                string: '/deleteFile',
+                maxWeight: 20
+            },{
+                string: '/changeUserData',
+                maxWeight: 20
+            },{
+                string: '/search',
+                maxWeight: 20
+            },{
+                string: '/terms',
+                maxWeight: 20
+            },{
+                string: '/deleteUser',
+                maxWeight: 20
+            },{
+                string: '/react',
+                maxWeight: 20
+            },{
+                string: '/reindex',
+                maxWeight: 20
+            },{
+                string: '/about',
+                maxWeight: 20
+            },{
+                string: '/noscript',
+                maxWeight: 20
+            },{
+                string: '/uploadCid',
+                maxWeight: 20
+            },{
+                string: '/report',
+                maxWeight: 20
+            },{
+                string: '/deleteReport',
+                maxWeight: 20
+            },{
+                string: '/reportCid',
+                maxWeight: 20
+            },{
+                string: '/user/*',
+                maxWeight: 20
+            }
+        //         
+        //                    
+        ]
+      });
+
+    app.use(ddos.express());
+
+
 
     const goHome = async (req, res, args) => {
         if(!args.vids){
@@ -956,6 +1070,15 @@ async function main () {
     }
 
     db.sync().then(() => {
+        app.use((req, res, next) => {
+            res.status(404).send("Sorry can't find that!")
+        })
+
+        app.use((err, req, res, next) => {
+            console.error(err.stack)
+            res.status(500).send('Something broke!')
+        })
+
         app.listen(process.env.PORT || 3000, () => {
             console.log('Server listening on 3000')
         })
