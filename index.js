@@ -165,7 +165,7 @@ async function main () {
                 maxWeight: 20
             },{
                 string: '/video',
-                maxWeight: 10
+                maxWeight: 1
             },{
                 string: '/forgotPassword',
                 maxWeight: 20
