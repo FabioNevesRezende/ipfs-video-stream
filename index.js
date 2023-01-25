@@ -6,7 +6,7 @@ ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 const fs = require('fs');
 const Path = require('path');
 const cookieParser = require('cookie-parser');
-//const helmet = require('helmet')
+const helmet = require('helmet')
 const csurf = require('csurf');
 const nodeMailer = require('nodemailer');
 const https = require('https')
@@ -99,19 +99,27 @@ async function main () {
         cookie: true
     });
     
-    //app.use(helmet())
-    // app.use(helmet({
-    //     contentSecurityPolicy: {
-    //         directives: {
-    //             defaultSrc: ["'self'"],
-    //             scriptSrc: ["'self'", "'unsafe-inline'"],
-    //             styleSrc: ["'self'"],
-    //             imgSrc: ["*", 'data:'],
-    //             connectSrc: ["'self'"],
-    //             frameSrc: ["'self'"],
-    //         },
-    //     }
-    // }));
+    //app.use(helmet.contentSecurityPolicy());
+    // app.use(
+    //     helmet({
+    //       contentSecurityPolicy: {policy:`default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests`},
+    //     })
+    //   );
+    // app.use(helmet.crossOriginEmbedderPolicy());
+    // app.use(helmet.crossOriginOpenerPolicy());
+    // app.use(helmet.crossOriginResourcePolicy({policy: 'cross-origin'}));
+    app.use(helmet.dnsPrefetchControl());
+    app.use(helmet.expectCt());
+    app.use(helmet.frameguard());
+    app.use(helmet.hidePoweredBy());
+    app.use(helmet.hsts());
+    app.use(helmet.ieNoOpen());
+    app.use(helmet.noSniff());
+    app.use(helmet.originAgentCluster());
+    app.use(helmet.permittedCrossDomainPolicies());
+    app.use(helmet.referrerPolicy());
+    app.use(helmet.xssFilter());
+    
     app.disable('x-powered-by')
     app.set('view engine', 'ejs')
     app.use(express.json())
