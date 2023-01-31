@@ -249,7 +249,6 @@ async function main () {
         ]
       });
 
-    app.use(ddos.express());
 
 
 
@@ -1079,14 +1078,17 @@ async function main () {
 
     db.sync().then(() => {
         app.use((req, res, next) => {
-            res.status(404).send("Sorry can't find that!")
+            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+            console.log(`${fullUrl} 404`)
+            return goPage('error', req, res, { errorMessage: 'Page not found' }, 404)
         })
 
         app.use((err, req, res, next) => {
             console.error(err.stack)
-            res.status(500).send('Something broke!')
+            return goPage('error', req, res, { errorMessage: 'Internal error' }, 500)
         })
 
+        app.use(ddos.express());
         app.listen(process.env.PORT || 3000, () => {
             console.log('Server listening on 3000')
         })
