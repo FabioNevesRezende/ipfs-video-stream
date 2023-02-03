@@ -140,6 +140,11 @@ async function main () {
     app.use(handleCsrfError)
     app.use(cors())
 
+    app.use((req,res,next) => {
+        let url = req.originalUrl || req.url
+        console.log(`general middleware request from ${req.ip} to url ${url} with method: ${req.method} `)
+        next()
+    })
     const ddos = new DDDoS({
             rules: [{
                 string: '/',
