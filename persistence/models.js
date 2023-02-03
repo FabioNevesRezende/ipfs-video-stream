@@ -623,11 +623,12 @@ File.associate = async (name,cid) => {
   }
 } 
 
-File.persist = async (args) => {
+File.persist = async (args,cache) => {
   try{
     console.log('persistFile: ' + args.originalFileName)
   
       const file1 = await File.create(args) 
+      cache.cleanWhere('File')
   } catch (err){
     console.log('File.persist error ' + err)
     if(err.name === "SequelizeUniqueConstraintError")
@@ -636,14 +637,23 @@ File.persist = async (args) => {
   return true
 };
 
-File.getVideosHomePage = async() => {
+File.getVideosHomePage = async(cache) => {
+  const key = 'KeyFile_VideosHomePage';
+  if(!cache.get(key)){
   const files = await File.findAll({attributes: ['cid', 'originalFileName', 'duration', 'createdAt', 'op'], order: [['createdAt', 'desc']], limit: 20 })
 
   for(const f of files){
     f.op = await User.findOne({attributes: ['username', 'id'], where: { id: f.op }})
   }
 
+    console.log(`Criando cache para ${key}`)
+    cache.put(key, files)
   return files;
+  }
+  else {
+    console.log(`Retornando cache armazenado para ${key}`)
+    return cache.get(key)
+  }
 };
 
 File.getRandomCids = async() => {

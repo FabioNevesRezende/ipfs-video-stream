@@ -38,6 +38,7 @@
     "it-all": "^1.0.5",
     "it-to-buffer": "^2.0.0",
     "jsonwebtoken": "^9.0.0",
+    "memory-cache": "^0.2.0",
     "mysql2": "^2.2.5",
     "nodemailer": "^6.5.0",
     "nodemailer-sendgrid-transport": "^0.2.0",

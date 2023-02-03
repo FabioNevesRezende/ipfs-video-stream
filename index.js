@@ -13,6 +13,7 @@ const https = require('https')
 const cors = require('cors')
 const DDDoS = require('dddos');
 require('dotenv').config()
+const mcache = require('memory-cache');
 
 const streamableDir = Path.join(__dirname, 'streamable')
 const imagesDir = Path.join(__dirname, 'imgs')
@@ -145,6 +146,18 @@ async function main () {
         console.log(`general middleware request from ${req.ip} to url ${url} with method: ${req.method} `)
         next()
     })
+
+    mcache.cleanWhere = (classname) => {
+        const keys = mcache.keys()
+
+        keysFile = keys.map(x => { if(x.includes(classname)) return x;  })
+        for(k in keysFile)
+        {
+            console.log(`deleting cache for ${keysFile[k]}`)
+            mcache.del(keysFile[k])
+        }
+    }
+
     const ddos = new DDDoS({
             rules: [{
                 string: '/',
@@ -254,13 +267,30 @@ async function main () {
         ]
       });
 
-
-
+    const cache = (duration) => {
+        return (req, res, next) => {
+            let key = req.originalUrl || req.url
+            let cachedBody = mcache.get(key)
+            if (cachedBody) {
+                console.log(`retornando mensagem cacheada de ${key}`)
+                res.send(cachedBody)
+                return
+            } else {
+                res.sendResponse = res.send
+                res.send = (body) => {
+                   mcache.put(key, body, duration * 1000 * 60);
+                    res.sendResponse(body)
+                }
+                console.log(`armazenando novo cache para ${key}`)
+                next()
+            }
+        }
+    }
 
     const goHome = async (req, res, args) => {
         if(!args.vids){
-            const vids = await File.getVideosHomePage();
-            console.log(JSON.stringify(vids))
+            const vids = await File.getVideosHomePage(mcache);
+            //console.log(JSON.stringify(vids))
             args.vids = vids;
         }
 
@@ -586,7 +616,7 @@ async function main () {
                                             await pinFile(dirCid)
                                             requestCidToIpfsNetwork(dirCid)
                                             const newFile = {originalFileName: fileName, cid: dirCid, op: req.user.id, description, duration: file.duration}
-                                            if(!await File.persist(newFile)){
+                                            if(!await File.persist(newFile, mcache)){
                                                 UserFileRepeat.associate(req.user.id, dirCid)
                                             }
                                             await File.indexFile({...newFile, categories: categories})
@@ -889,8 +919,8 @@ async function main () {
             const cid = req.body.cid
 
             const newFile = {originalFileName: req.body.fileName, cid, op: req.user.id, description : req.body.description, duration : req.body.duration}
-            if(!await File.persist(newFile)){
-                UserFileRepeat.associate(req.user.id, dirCid)
+            if(!await File.persist(newFile, mcache)){
+                UserFileRepeat.associate(req.user.id, cid)
             }
             File.indexFile({...newFile, categories})
             for(const category of categories.split(',')){
@@ -1081,7 +1111,7 @@ async function main () {
         }
     }
 
-    db.sync().then(() => {
+    db.sync(/*{alter:true}*/).then(() => {
         app.use((req, res, next) => {
             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
             console.log(`${fullUrl} 404`)
