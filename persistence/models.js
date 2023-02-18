@@ -7,6 +7,38 @@ const saltRounds = 15;
 var jwt = require('jsonwebtoken');
 const fs = require('fs');
 const Path = require('path');
+const cache = require('memory-cache');
+
+cache.cleanWhere = (classname) => {
+  const keys = cache.keys()
+
+  keysFile = keys.map(x => { if(x.includes(classname)) return x;  })
+  for(k in keysFile)
+  {
+      console.log(`deleting cache for ${keysFile[k]}`)
+      cache.del(keysFile[k])
+  }
+}
+
+class AuthError extends Error {  
+  constructor (message) {
+      super(message)
+
+      // assign the error class name in your custom error (as a shortcut)
+      this.name = this.constructor.name
+
+      // capturing the stack trace keeps the reference to your error class
+      Error.captureStackTrace(this, this.constructor);
+}
+}
+class BlockedLoginAttempt extends Error {  
+  constructor (message) {
+      super(message)
+      this.name = this.constructor.name
+      Error.captureStackTrace(this, this.constructor);
+  }
+}
+
 
 const User = database.define('user', {
     id: {
@@ -57,7 +89,21 @@ const User = database.define('user', {
       type: Sequelize.BOOLEAN,
       defaultValue: false,
       allowNull: false
-    }
+    },
+    loginAttempts: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0
+    },
+    blockedLogin: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false,
+      allowNull: false
+    },
+    blockedTime: {
+      type: Sequelize.DATE,
+      allowNull: true
+    },
 });
 
 User.updateProfilePhoto = async (user, cid) => {
@@ -240,14 +286,48 @@ User.prototype.verifyToken = function(token){
 }
 
 User.authenticate = async function(username, password) {
+  const key = 'keyUserAuth_' + username;
+  if(!cache.get(key)){
+    var user = await User.findOne({ where: { username } });
 
-    const user = await User.findOne({ where: { username } });
+    cache.put(key,user,1000*60*60)
 
-    if (bcrypt.compareSync(password, user.password)) {
-      return user.authorize();
+  }
+  else {
+    var user = cache.get(key);
+  }
+
+  if(user.blockedLogin)
+  {
+    blockedTime = new Date(user.blockedTime)
+    datenow = new Date()
+
+    blockedTime.setMinutes(blockedTime.getMinutes() + 3)
+
+    if(blockedTime < datenow){
+      user.blockedLogin = false
+      user.loginAttempts = 0
+      user.save()
+      cache.put(key,user,1000*60*60)
+    } else {
+      throw new BlockedLoginAttempt(`User.authenticate blocked login attempt: ${username}`);
     }
+  }
 
-    throw new Error('invalid password');
+
+  if (bcrypt.compareSync(password, user.password)) {
+    return user.authorize();
+  }
+
+  user.loginAttempts = user.loginAttempts + 1
+  if(user.loginAttempts >= 4){
+    user.blockedLogin = true;
+    user.blockedTime = new Date()
+    user.save()
+    cache.put(key,user,1000*60*60)
+  }
+  
+  throw new AuthError('User.authenticate invalid password');
 }
 
 User.prototype.changePassword = async function(oldPassword, newPassword){
@@ -623,7 +703,7 @@ File.associate = async (name,cid) => {
   }
 } 
 
-File.persist = async (args,cache) => {
+File.persist = async (args) => {
   try{
     console.log('persistFile: ' + args.originalFileName)
   
@@ -637,18 +717,18 @@ File.persist = async (args,cache) => {
   return true
 };
 
-File.getVideosHomePage = async(cache) => {
+File.getVideosHomePage = async() => {
   const key = 'KeyFile_VideosHomePage';
   if(!cache.get(key)){
-  const files = await File.findAll({attributes: ['cid', 'originalFileName', 'duration', 'createdAt', 'op'], order: [['createdAt', 'desc']], limit: 20 })
+    const files = await File.findAll({attributes: ['cid', 'originalFileName', 'duration', 'createdAt', 'op'], order: [['createdAt', 'desc']], limit: 20 })
 
-  for(const f of files){
-    f.op = await User.findOne({attributes: ['username', 'id'], where: { id: f.op }})
-  }
+    for(const f of files){
+      f.op = await User.findOne({attributes: ['username', 'id'], where: { id: f.op }})
+    }
 
     console.log(`Criando cache para ${key}`)
     cache.put(key, files)
-  return files;
+    return files;
   }
   else {
     console.log(`Retornando cache armazenado para ${key}`)
@@ -1056,3 +1136,5 @@ module.exports.Userpendingupload = Userpendingupload;
 module.exports.doDbMaintenance = doDbMaintenance;
 module.exports.FilePendingDeletion = FilePendingDeletion;
 module.exports.UserFileRepeat = UserFileRepeat;
+module.exports.AuthError = AuthError  
+module.exports.BlockedLoginAttempt = BlockedLoginAttempt  
