@@ -26,6 +26,12 @@ if (!fs.existsSync(imagesDir)) {
     fs.mkdirSync(imagesDir)
     console.log(`imagesDir dir created: ${imagesDir}`)
 }
+lg = console.log
+
+console.log = (...s) => {
+    const n = new Date()
+    lg(`${n.toISOString()}: ${s[0]}`)
+}
 
 const db = require('./persistence/db')
 const {
