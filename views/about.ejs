@@ -13,13 +13,14 @@
     <div class="row">
         <h2>How does it works?</h2>
         <div class="col-sm-4">
-            <img src="https://gateway.ipfs.io/ipfs/Qmdy9RE9hXSNy4ZzGcPFWddLHiWPx8DT8LWVz3iosh1hFg" alt="ipfs" width="100%">
         </div>
         <div class="col-sm-8">
             <p>IPFS is a <strong>decentralized protocol</strong> where one can reach files by it's CID (content identifier).
                 Whenever you upload a video to us, we give you the CID of this video. <strong>We do not host the video</strong>, you must host it by yourself according to the CID received.</p>
             <p>In future versions of <%= params?.appname %> we will have a <strong>premium account</strong> mode where we can host one copy of your files for you!</p>
         </div>
+
+        <canvas class="pbackground"></canvas>
     </div>
     <div class="row darker">
         <h2>Is it like torrent?</h2>

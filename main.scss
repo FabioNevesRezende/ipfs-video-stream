@@ -20,8 +20,18 @@ nav span:hover{
     cursor: pointer;
 }
 
-html,
-body {
+
+.pbackground {
+  position:  absolute;
+  display:  block;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+html,body {
+  margin: 0;
+  padding: 0;
   height: 100%;
 }
 
