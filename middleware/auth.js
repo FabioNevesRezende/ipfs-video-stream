@@ -1,7 +1,7 @@
-const { User, AuthToken } = require('../persistence/models');
-const {goPage} = require('../utils')
+import { User, AuthToken } from '../persistence/models.js'
+import {goPage} from '../utils.js'
 
-module.exports = async function(req, res, next) {
+const AuthMiddleware = async function(req, res, next) {
   console.log('running middleware auth')
   
   const token =
@@ -31,3 +31,5 @@ module.exports = async function(req, res, next) {
   }
   next();
 }
+
+export default AuthMiddleware

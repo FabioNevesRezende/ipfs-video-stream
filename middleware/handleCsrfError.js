@@ -1,6 +1,6 @@
-const {goPage} = require('../utils')
+import {goPage} from '../utils.js'
 
-module.exports = [
+const handleCsrfError = [
 function (err, req, res, next) {
     if (err.code !== 'EBADCSRFTOKEN') return next(err)
    
@@ -8,3 +8,5 @@ function (err, req, res, next) {
     return goPage('error', req, res, { errorMessage: 'Invalid Csrf token' }, 403 )
   }
 ]
+
+export default handleCsrfError

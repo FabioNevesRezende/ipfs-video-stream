@@ -1,7 +1,7 @@
-const { body, validationResult } = require('express-validator');
-const {goPage} = require('../utils')
+import { body, validationResult } from 'express-validator'
+import {goPage} from '../utils.js'
 
-module.exports = [
+const validateFileComment = [
     body('commentText').exists().trim().escape().isLength({ max: 512 }).withMessage('Maximum size 512 chars'),
     function(req,res,next) { 
         console.log('running middleware validate file comment')
@@ -14,3 +14,5 @@ module.exports = [
         next()
     }   
 ]
+
+export default validateFileComment

@@ -1,3 +1,4 @@
+atualizar para biblioteca helia
 
 user interface bonita (x)
 
@@ -7,12 +8,13 @@ busca por videos/por tags (x)
 
 captchas (deixar para cloudflare)
 
-validação mimetype videos e tratamento de erros ffmpeg (x)
+validação mimetype videos e tratamento de erros ffmpeg (\)
 
     triggers para deletar tokens invalidos, usuarios inativos, etc (x)
 
     revisar try/catchs (x)
 
+adicionar suporte para outros filetypes
 logs de auditoria
 denuncias de conteúdo
 

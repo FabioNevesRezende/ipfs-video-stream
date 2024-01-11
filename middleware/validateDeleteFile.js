@@ -1,7 +1,7 @@
-const { body, validationResult } = require('express-validator');
-const {goPage} = require('../utils')
+import { body, validationResult } from 'express-validator'
+import {goPage} from '../utils.js'
 
-module.exports = [
+const validateDeleteFile = [
     body('cid').exists().isLength({ max: 46, min: 46 }).trim().escape().withMessage('Maximum size 46 chars'),
     function(req,res,next) { 
         console.log('running middleware validate delete file ')
@@ -14,3 +14,5 @@ module.exports = [
         next()
     }   
 ]
+
+export default validateDeleteFile

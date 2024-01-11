@@ -1,7 +1,7 @@
-const { check, body, validationResult } = require('express-validator');
-const {goPage} = require('../utils')
+import { body,  validationResult } from 'express-validator'
+import {goPage} from '../utils.js'
 
-module.exports = [
+const validateVideoInput = [
     body('fileName').exists().isLength({ max: 25 }).withMessage('Maximum size 25 chars').trim().escape(),
     body('categories').exists().isLength({ max: 1024 }).withMessage('Maximum size 1024 chars').trim().escape(),
     body('description').exists().isLength({ max: 1024 }).withMessage('Maximum size 1024 chars').trim().escape(),
@@ -26,3 +26,5 @@ module.exports = [
         next()
     }   
 ]
+
+export default validateVideoInput

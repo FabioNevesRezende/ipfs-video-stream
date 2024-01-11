@@ -1,7 +1,7 @@
-const { body, validationResult } = require('express-validator');
-const {goPage} = require('../utils')
+import { body, validationResult } from 'express-validator'
+import {goPage} from '../utils.js'
 
-module.exports = [
+const validateChangePassword = [
     body('password').exists().isLength({ min: 8, max: 25 }).withMessage('Password minimum 8 maximum 25'),
     body('newPassword').exists().isLength({ min: 8, max: 25 }).withMessage('Password minimum 8 maximum 25'),
     body('newPasswordConfirm').exists().isLength({ min: 8, max: 25 }).withMessage('Password minimum 8 maximum 25'),
@@ -21,3 +21,5 @@ module.exports = [
         next()
     }   
 ]
+
+export default validateChangePassword

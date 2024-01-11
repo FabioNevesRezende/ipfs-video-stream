@@ -1,7 +1,7 @@
-const { body, validationResult } = require('express-validator');
-const {goPage} = require('../utils')
+import { body, validationResult } from 'express-validator'
+import {goPage} from '../utils.js'
 
-module.exports = [
+const validateDeleteComment = [
     body('commentId').exists().isInt({min: 1, max: 2147483648}).escape().trim(),
     function(req,res,next) { 
         console.log('running middleware validate delete comment ')
@@ -14,3 +14,5 @@ module.exports = [
         next()
     }   
 ]
+
+export default validateDeleteComment

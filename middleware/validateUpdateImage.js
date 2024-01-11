@@ -1,7 +1,7 @@
-const { check, body, validationResult } = require('express-validator');
-const {goPage} = require('../utils')
+import { validationResult } from 'express-validator'
+import {goPage} from '../utils.js'
 
-module.exports = [
+const validateUpdateImage = [
     function(req,res,next) { 
         console.log('running middleware validate update image')
         const errors = validationResult(req);
@@ -16,3 +16,5 @@ module.exports = [
         next()
     }   
 ]
+
+export default validateUpdateImage

@@ -1,18 +1,25 @@
-const express = require('express');
-const fileUpload = require('express-fileupload')
-const ffmpeg = require('fluent-ffmpeg');
-const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
+import express from 'express'
+import fileUpload from 'express-fileupload'
+import ffmpeg from 'fluent-ffmpeg'
+import ffmpegInstaller from '@ffmpeg-installer/ffmpeg'
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
-const fs = require('fs');
-const Path = require('path');
-const cookieParser = require('cookie-parser');
-const helmet = require('helmet')
-const csurf = require('csurf');
-const nodeMailer = require('nodemailer');
-const https = require('https')
-const cors = require('cors')
-const DDDoS = require('dddos');
-require('dotenv').config()
+import fs from 'fs'
+import Path from 'path'
+import { fileURLToPath } from 'url'
+import cookieParser from 'cookie-parser'
+import helmet from 'helmet'
+import csurf from 'csurf'
+import nodeMailer from 'nodemailer'
+import https from 'https'
+import cors from 'cors'
+import DDDoS from 'dddos'
+import dotenv from 'dotenv'
+dotenv.config()
+import { unixfs } from '@helia/unixfs'
+import { createHelia } from 'helia'
+import Sequelize from 'sequelize'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = Path.dirname(__filename)
 
 const streamableDir = Path.join(__dirname, 'streamable')
 const imagesDir = Path.join(__dirname, 'imgs')
@@ -26,15 +33,16 @@ if (!fs.existsSync(imagesDir)) {
     fs.mkdirSync(imagesDir)
     console.log(`imagesDir dir created: ${imagesDir}`)
 }
-lg = console.log
+const lg = console.log
 
 console.log = (...s) => {
     const n = new Date()
     lg(`${n.toISOString()}: ${s[0]}`)
 }
 
-const db = require('./persistence/db')
-const {
+const db = new Sequelize(process.env.DB_CONNECTION_STRING);
+
+import {
     User,
     File,
     Comment,
@@ -44,42 +52,42 @@ const {
     UserFileRepeat,
     Report,
     AuthError,
-    BlockedLoginAttempt} = require('./persistence/models')
+    BlockedLoginAttempt} from './persistence/models.js';
 
-const AuthMiddleware = require('./middleware/auth')
-const validateVideoInput = require('./middleware/validateVideoInput')
-const validateSingUp = require('./middleware/validateSingup')
-const validateLogin = require('./middleware/validateLogin')
-const getLoggedUser = require('./middleware/getLoggedUser')
-const handleCsrfError = require('./middleware/handleCsrfError');
-const validateGetWatch = require('./middleware/validateGetWatch');
-const validateNewSingupToken = require('./middleware/validateNewSingupToken')
-const validateForgotPassword = require('./middleware/validateForgotPassword') 
-const validateResetPassword  = require('./middleware/validateResetPassword') 
-const validateChangePassword  = require('./middleware/validateChangePassword') 
-const validateUpdateImage = require('./middleware/validateUpdateImage')
-const validateFileComment = require('./middleware/validateFileComment')
-const validateDeleteComment = require('./middleware/validateDeleteComment')
-const validateDeleteFile = require('./middleware/validateDeleteFile')
-const validateChangeUserData = require('./middleware/validateChangeUserData')
-const validateSearch = require('./middleware/validateSearch')
-const validateDeleteUser = require('./middleware/validateDeleteUser')
-const validateGetUser = require('./middleware/validateGetUser')
-const validateReact = require('./middleware/validateReact')
-const validateUploadCid = require('./middleware/validateUploadCid')
-const validateReportCid = require('./middleware/validateReportCid')
-const validateDeleteReport = require('./middleware/validateDeleteReport')
-var sgTransport = require('nodemailer-sendgrid-transport');
+import AuthMiddleware from './middleware/auth.js'
+import validateVideoInput  from './middleware/validateVideoInput.js'
+import validateSingUp  from './middleware/validateSingup.js'
+import validateLogin  from './middleware/validateLogin.js'
+import getLoggedUser  from './middleware/getLoggedUser.js'
+import handleCsrfError  from './middleware/handleCsrfError.js'
+import validateGetWatch  from './middleware/validateGetWatch.js'
+import validateNewSingupToken  from './middleware/validateNewSingupToken.js'
+import validateForgotPassword  from './middleware/validateForgotPassword.js'
+import validateResetPassword   from './middleware/validateResetPassword.js'
+import validateChangePassword   from './middleware/validateChangePassword.js'
+import validateUpdateImage  from './middleware/validateUpdateImage.js'
+import validateFileComment  from './middleware/validateFileComment.js'
+import validateDeleteComment  from './middleware/validateDeleteComment.js'
+import validateDeleteFile  from './middleware/validateDeleteFile.js'
+import validateChangeUserData  from './middleware/validateChangeUserData.js'
+import validateSearch  from './middleware/validateSearch.js'
+import validateDeleteUser  from './middleware/validateDeleteUser.js'
+import validateGetUser  from './middleware/validateGetUser.js'
+import validateReact  from './middleware/validateReact.js'
+import validateUploadCid  from './middleware/validateUploadCid.js'
+import validateReportCid  from './middleware/validateReportCid.js'
+import validateDeleteReport  from './middleware/validateDeleteReport.js'
+import sgTransport  from 'nodemailer-sendgrid-transport'
 
-const {goPage, sleep} = require('./utils')
+import {goPage} from './utils.js'
 
 const LIKE = 0
 const DISLIKE = 1
 
 async function main () {
-    const { create } = await import('ipfs-core')
     const repoPath = '.ipfs-node-main'
-    const ipfs = await create({silent: true, repo: repoPath })
+    const helia = await createHelia({silent: true, repo: repoPath })
+    const ipfs = unixfs(helia)
     const app = express()
 
     if(process.env.MAIL_ENGINE == "gmail")
@@ -952,8 +960,14 @@ async function main () {
 
     const addFile = async (fileName, wrapWithDirectory=false) => {
         const file = fs.readFileSync(fileName)
-        const fileAdded = await ipfs.add({content: file}, { wrapWithDirectory })
-        fileCid = fileAdded.cid.toString()
+        const cid = await ipfs.addBytes(file, {
+            onProgress: (evt) => {
+                console.log("adding file...")
+                console.info('add event', evt.type, evt.detail)
+            }
+          })
+
+        fileCid = cid.toString()
         console.log('added file cid ' + fileCid)
         return fileCid;
     }

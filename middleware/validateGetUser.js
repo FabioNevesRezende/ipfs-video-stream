@@ -1,7 +1,7 @@
-const { param, validationResult } = require('express-validator');
-const {goPage} = require('../utils')
+import { param, validationResult } from 'express-validator'
+import {goPage} from '../utils.js'
 
-module.exports = [
+const validateGetUser = [
     param('id').exists().isInt({ min: 1, max: 1000000000 }).withMessage('Maximum user id 1000000000').trim().escape(),
     function(req,res,next) { 
         console.log('running middleware validate get user')
@@ -14,3 +14,5 @@ module.exports = [
         next()
     }   
 ]
+
+export default validateGetUser

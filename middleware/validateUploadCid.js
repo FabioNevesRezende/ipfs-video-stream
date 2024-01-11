@@ -1,7 +1,7 @@
-const { body, validationResult } = require('express-validator');
-const {goPage} = require('../utils')
+import { body, validationResult } from 'express-validator'
+import {goPage} from '../utils.js'
 
-module.exports = [
+const validateUploadCid = [
     body('fileName').exists().isLength({ max: 25 }).withMessage('Maximum fileName size 25 chars').trim().escape(),
     body('categories').exists().isLength({ max: 1024 }).withMessage('Maximum categories size 1024 chars').trim().escape(),
     body('description').exists().isLength({ max: 1024 }).withMessage('Maximum description size 1024 chars').trim().escape(),
@@ -17,3 +17,5 @@ module.exports = [
         next()
     }   
 ]
+
+export default validateUploadCid

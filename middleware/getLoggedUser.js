@@ -1,7 +1,7 @@
-const { User, AuthToken, Report } = require('../persistence/models');
-const {goPage} = require('../utils')
+import { User, AuthToken, Report }  from '../persistence/models.js'
+import {goPage} from '../utils.js'
 
-module.exports = async function(req, res, next) {
+const getLoggedUser = async function(req, res, next){
   console.log('running middleware find logged user')
   
   const token = req.cookies.authToken || req.headers.authorization;
@@ -28,3 +28,5 @@ module.exports = async function(req, res, next) {
   }
   next();
 }
+
+export default getLoggedUser

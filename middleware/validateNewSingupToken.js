@@ -1,7 +1,7 @@
-const { body, validationResult } = require('express-validator');
-const {goPage} = require('../utils')
+import { body, validationResult } from 'express-validator'
+import {goPage} from '../utils.js'
 
-module.exports = [
+const validateNewSingupToken = [
     body('email').exists().isEmail().normalizeEmail().trim().escape(),
     function(req,res,next) { 
         console.log('running middleware validate new singup token')
@@ -14,3 +14,5 @@ module.exports = [
         next()
     }   
 ]
+
+export default validateNewSingupToken

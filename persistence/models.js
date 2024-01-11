@@ -1,13 +1,15 @@
-const Sequelize = require('sequelize');
-const { QueryTypes } = require('sequelize');
-const database = require('./db');
+import Sequelize from 'sequelize'
+import { QueryTypes } from 'sequelize'
+import "dotenv/config"
+const database = new Sequelize(process.env.DB_CONNECTION_STRING);
+
 const OP = Sequelize.Op;
-const bcrypt = require('bcrypt');
+import bcrypt from 'bcrypt'
 const saltRounds = 15;
-var jwt = require('jsonwebtoken');
-const fs = require('fs');
-const Path = require('path');
-const cache = require('memory-cache');
+import jwt from 'jsonwebtoken'
+import fs from 'fs'
+import Path from 'path'
+import cache from 'memory-cache'
 
 cache.cleanWhere = (classname) => {
   const keys = cache.keys()
@@ -20,7 +22,7 @@ cache.cleanWhere = (classname) => {
   }
 }
 
-class AuthError extends Error {  
+export class AuthError extends Error {  
   constructor (message) {
       super(message)
 
@@ -31,7 +33,7 @@ class AuthError extends Error {
       Error.captureStackTrace(this, this.constructor);
 }
 }
-class BlockedLoginAttempt extends Error {  
+export class BlockedLoginAttempt extends Error {  
   constructor (message) {
       super(message)
       this.name = this.constructor.name
@@ -40,7 +42,7 @@ class BlockedLoginAttempt extends Error {
 }
 
 
-const User = database.define('user', {
+export const User = database.define('user', {
     id: {
       type: Sequelize.INTEGER,
       autoIncrement: true,
@@ -151,7 +153,7 @@ User.newConfirmToken = async function(email){
   }
 }
 
-makeUserConfirmToken = async function(user){
+let makeUserConfirmToken = async (user) => {
   try{
     const token = jwt.sign({exp: Math.floor(Date.now() / 1000) + (86400) /* 24 hours */,  user }, user.username + user.password);
         
@@ -382,7 +384,7 @@ User.remove = async(id, password=undefined) => {
 
 }
 
-const AuthToken = database.define('authtoken', {
+export const AuthToken = database.define('authtoken', {
     token: {
         type: Sequelize.STRING(512),
         allowNull: false,
@@ -443,7 +445,7 @@ User.logout = async function (token) {
 User.createUser = async function(email,username,password){
     const file1 = await User.create({email,username,password});
 }
-const File = database.define('file', {
+export const File = database.define('file', {
     originalFileName: {
         type: Sequelize.STRING,
         allowNull: false
@@ -471,7 +473,7 @@ const File = database.define('file', {
     }
 })
  
-const Tag = database.define('tag', {
+export const Tag = database.define('tag', {
     name: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -501,7 +503,7 @@ const FileReaction = database.define('filereaction', {
 )
 
 
-const Comment = database.define('comment', {
+export const Comment = database.define('comment', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
@@ -530,7 +532,7 @@ User.belongsToMany(File, { through: FileReaction })
 
 File.belongsToMany(User, { through: FileReaction })
 
-const UserFileRepeat = database.define('userfilerepeat', {},
+export const UserFileRepeat = database.define('userfilerepeat', {},
 {
   timestamps: false
 }
@@ -867,7 +869,7 @@ User.withProfileData = async (id) => {
   }
 }
 
-const Userpendingupload = database.define('userpendingupload', {
+export const Userpendingupload = database.define('userpendingupload', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
@@ -908,7 +910,7 @@ Userpendingupload.done = async (id) => {
   }
 }
 
-const FilePendingDeletion = database.define('filependingdeletion', {
+export const FilePendingDeletion = database.define('filependingdeletion', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
@@ -935,7 +937,7 @@ FilePendingDeletion.schedule = async (dirname) => {
 }
 
 
-doDbMaintenance = async() => {
+export async function doDbMaintenance(){
   try{
     console.log('doDbMaintenance start')
     var atdate = new Date();
@@ -997,7 +999,7 @@ const ReportType = database.define('reporttype', {
   timestamps: false
 })
 
-const Report = database.define('report', {
+export const Report = database.define('report', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
@@ -1125,16 +1127,3 @@ Message.register = async (content, userId) => {
   }
 
 }
-
-module.exports.Tag = Tag;
-module.exports.File = File;
-module.exports.Report = Report;
-module.exports.AuthToken = AuthToken;
-module.exports.Comment = Comment;
-module.exports.User = User;
-module.exports.Userpendingupload = Userpendingupload;
-module.exports.doDbMaintenance = doDbMaintenance;
-module.exports.FilePendingDeletion = FilePendingDeletion;
-module.exports.UserFileRepeat = UserFileRepeat;
-module.exports.AuthError = AuthError  
-module.exports.BlockedLoginAttempt = BlockedLoginAttempt  

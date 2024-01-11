@@ -1,7 +1,7 @@
-const { query, validationResult } = require('express-validator');
-const {goPage} = require('../utils')
+import { query, validationResult } from 'express-validator'
+import {goPage} from '../utils.js'
 
-module.exports = [
+const validateGetWatch = [
     query('filehash').exists().matches(/Qm[A-Za-z0-9]{44}$/).withMessage('Invalid cid'),
     function(req,res,next) { 
         console.log('running middleware handle get watch')
@@ -14,3 +14,5 @@ module.exports = [
         next()
     }   
 ]
+
+export default validateGetWatch

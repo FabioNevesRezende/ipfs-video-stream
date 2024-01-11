@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "homepage": "http://tests.piteco.org",
   "repositories": [
     {
@@ -20,6 +21,7 @@
   "license": "ISC",
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.0.17",
+    "@helia/unixfs": "^2.0.0",
     "bcrypt": "^5.0.1",
     "cookie-parser": "^1.4.5",
     "cookie-session": "^2.0.0",
@@ -32,9 +34,8 @@
     "express-fileupload": "^1.2.1",
     "express-validator": "^6.10.0",
     "fluent-ffmpeg": "^2.1.2",
+    "helia": "^3.0.0",
     "helmet": "^6.0.1",
-    "ipfs": "^0.65.0",
-    "ipfs-core": "^0.17.0",
     "it-all": "^1.0.5",
     "it-to-buffer": "^2.0.0",
     "jsonwebtoken": "^9.0.0",

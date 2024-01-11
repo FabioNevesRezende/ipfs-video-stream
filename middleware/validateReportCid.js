@@ -1,7 +1,7 @@
-const { body, validationResult } = require('express-validator');
-const {goPage} = require('../utils')
+import { body, validationResult } from 'express-validator'
+import {goPage} from '../utils.js'
 
-module.exports = [
+const validateReportCid = [
     body('type').exists().isInt({ min: 0, max: 15 }).withMessage('Maximum type is 2').trim().escape(),
     body('cid').exists().isLength({ max: 46, min: 46 }).trim().escape().withMessage('Invalid Cid'),
     function(req,res,next) { 
@@ -15,3 +15,5 @@ module.exports = [
         next()
     }   
 ]
+
+export default validateReportCid

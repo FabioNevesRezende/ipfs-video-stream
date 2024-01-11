@@ -1,7 +1,7 @@
-const { body, validationResult } = require('express-validator');
-const {goPage} = require('../utils')
+import { body, validationResult } from 'express-validator'
+import {goPage} from '../utils.js'
 
-module.exports = [
+const validateReact = [
     body('cid').exists().matches(/Qm[A-Za-z0-9]{44}$/).withMessage('Invalid cid'),
     body('reaction').exists().isInt({min: 0, max: 1}).escape().trim().withMessage('Invalid reaction'),
     function(req,res,next) { 
@@ -15,3 +15,5 @@ module.exports = [
         next()
     }   
 ]
+
+export default validateReact
