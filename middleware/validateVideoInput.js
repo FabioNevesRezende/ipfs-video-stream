@@ -1,5 +1,7 @@
 import { body,  validationResult } from 'express-validator'
 import {goPage} from '../utils.js'
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
 
 const validateVideoInput = [
     body('fileName').exists().isLength({ max: 25 }).withMessage('Maximum size 25 chars').trim().escape(),

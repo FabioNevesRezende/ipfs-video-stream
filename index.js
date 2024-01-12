@@ -561,7 +561,7 @@ async function main () {
                         '-hls_playlist_type vod'
                     ]).output(`${tempDir}/master.m3u8`).on('end', async () => {
                         try{
-                            await ipfs.files.mkdir(`/videos/${fileName}` , {parents: true});
+                            let emptyDirCid = await ipfs.addDirectory(`/videos/${fileName}` , {parents: true});
 
                             fs.readdir(`${tempDir}`, async (err, files) => {
                                 try{
@@ -575,12 +575,13 @@ async function main () {
                                         if( stat.isFile() ){
                                             const filecontent = fs.readFileSync(fromPath)
                                             console.log(`writing ipfs file: /videos/${fileName}/${f}`)
-                                            await ipfs.files.write(`/videos/${fileName}/${f}`, filecontent, { create: true })
+                                            let fileCid = await ipfs.addBytes(filecontent, { create: true }) // .add({content: x})
 
-                                            fileStat = await ipfs.files.stat(`/videos/${fileName}/${f}`)
-                                            fileCid = fileStat.cid.toString()
-                                            await pinFile(fileCid)
-                                            requestCidToIpfsNetwork(fileCid)
+                                            let updateDir = await ipfs.cp(fileCid, emptyDirCid, f)
+                                            var updateDirCid = updateDir.toString()
+
+                                            await pinFile(updateDirCid)
+                                            requestCidToIpfsNetwork(updateDirCid)
                                         }
 
                                     }
@@ -593,15 +594,14 @@ async function main () {
                                             if(err) console.log('Error generating thumbnail from video')
                                             console.log('screenshots were saved')
                                             const filecontent = fs.readFileSync(`${tempDir}/tn.png`)
-                                            await ipfs.files.write(`/videos/${fileName}/thumb.png`, filecontent, { create: true })
+                                            let thumbCid = await ipfs.addBytes(filecontent, { create: true }) 
+
+                                            let updateDir = await ipfs.cp(thumbCid, updateDirCid, "thumb.png")
+                                            let dirCid = updateDir.toString()
                                             
-                                            fileStat = await ipfs.files.stat(`/videos/${fileName}/thumb.png`)
-                                            fileCid = fileStat.cid.toString()
-                                            await pinFile(fileCid)
-                                            requestCidToIpfsNetwork(fileCid)
+                                            await pinFile(thumbCid.toString())
+                                            requestCidToIpfsNetwork(thumbCid.toString())
                                         
-                                            dirStat = await ipfs.files.stat(`/videos/${fileName}`)
-                                            dirCid = dirStat.cid.toString()
                                             console.log(`dir cid: ${dirCid}`)
                                             await pinFile(dirCid)
                                             requestCidToIpfsNetwork(dirCid)
@@ -628,8 +628,6 @@ async function main () {
 
                                     })
 
-                                    rootStat = await ipfs.files.stat(`/`)
-                                    console.log(`root cid: ${rootStat.cid.toString()}`)
                                 }catch(err){
                                     console.log('app.post/video error running fs.readdir: ' + err)
                                 }
@@ -703,7 +701,7 @@ async function main () {
                     return res.status(500).send(err)
                 }
 
-                imgCid = await addFile(currentImg)
+                let imgCid = await addFile(currentImg)
 
                 if(req.user.profilePhotoCid){
                     unpinCidFromPinataCloud(req.user.profilePhotoCid)
@@ -712,7 +710,7 @@ async function main () {
                 req.user = await User.updateProfilePhoto(req.user, imgCid) 
                 requestCidToIpfsNetwork(imgCid)
                 pinCidToPinataCloud(imgCid)
-                
+                pinFile(imgCid)
                 fs.rmSync(currentImg)
                 
                 return goProfile(req, res, {})
@@ -960,21 +958,14 @@ async function main () {
 
     const addFile = async (fileName, wrapWithDirectory=false) => {
         const file = fs.readFileSync(fileName)
-        const cid = await ipfs.addBytes(file, {
-            onProgress: (evt) => {
-                console.log("adding file...")
-                console.info('add event', evt.type, evt.detail)
-            }
-          })
-
-        fileCid = cid.toString()
+        let fileCid = await ipfs.addBytes(file, { wrapWithDirectory })
         console.log('added file cid ' + fileCid)
-        return fileCid;
+        return fileCid.toString();
     }
 
     const pinFile = async (fileHash) => {
         console.log('pinFile cid: ' + fileHash)
-        await ipfs.pin.add(fileHash, {recursive: true})
+        await helia.pins.add(fileHash, {recursive: true})
 
     }
 
