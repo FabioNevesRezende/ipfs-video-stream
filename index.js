@@ -561,7 +561,7 @@ async function main () {
                         '-hls_playlist_type vod'
                     ]).output(`${tempDir}/master.m3u8`).on('end', async () => {
                         try{
-                            let emptyDirCid = await ipfs.addDirectory(`/videos/${fileName}` , {parents: true});
+                            let lastDirCid = await ipfs.addDirectory(`/videos/${fileName}` , {parents: true});
 
                             fs.readdir(`${tempDir}`, async (err, files) => {
                                 try{
@@ -577,11 +577,13 @@ async function main () {
                                             console.log(`writing ipfs file: /videos/${fileName}/${f}`)
                                             let fileCid = await ipfs.addBytes(filecontent, { create: true }) // .add({content: x})
 
-                                            let updateDir = await ipfs.cp(fileCid, emptyDirCid, f)
-                                            var updateDirCid = updateDir.toString()
+                                            let temp = await ipfs.cp(fileCid, lastDirCid, f)
+                                            lastDirCid = temp
+                                            var lastDirCidStr = lastDirCid.toString()
 
-                                            await pinFile(updateDirCid)
-                                            requestCidToIpfsNetwork(updateDirCid)
+                                            await pinFile(lastDirCidStr)
+                                            await pinFile(fileCid.toString())
+                                            requestCidToIpfsNetwork(lastDirCidStr)
                                         }
 
                                     }
@@ -596,7 +598,7 @@ async function main () {
                                             const filecontent = fs.readFileSync(`${tempDir}/tn.png`)
                                             let thumbCid = await ipfs.addBytes(filecontent, { create: true }) 
 
-                                            let updateDir = await ipfs.cp(thumbCid, updateDirCid, "thumb.png")
+                                            let updateDir = await ipfs.cp(thumbCid, lastDirCid, "thumb.png")
                                             let dirCid = updateDir.toString()
                                             
                                             await pinFile(thumbCid.toString())
