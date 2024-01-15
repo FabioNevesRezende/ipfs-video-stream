@@ -6,3 +6,4 @@ package-lock.json
 *.css.map
 streamable/*
 pinata.txt
+imgs/*
