@@ -14,7 +14,7 @@ import cache from 'memory-cache'
 cache.cleanWhere = (classname) => {
   const keys = cache.keys()
 
-  keysFile = keys.map(x => { if(x.includes(classname)) return x;  })
+  const keysFile = keys.map(x => { if(x.includes(classname)) return x;  })
   for(k in keysFile)
   {
       console.log(`deleting cache for ${keysFile[k]}`)
@@ -209,13 +209,13 @@ User.resetPassword = async (password, token) => {
   const dbToken = await UserResetPasswordToken.findOne( {where: { token }, include: [{ model: User }]} )
 
   if(dbToken && dbToken.user){
-    cAt = new Date(dbToken.createdAt)
-    limit = new Date(cAt.getTime() + 1000 * 60 * 60) // 1 hour
+    const cAt = new Date(dbToken.createdAt)
+    const limit = new Date(cAt.getTime() + 1000 * 60 * 60) // 1 hour
     if( (new Date()).getTime() > limit.getTime()){
       dbToken.destroy()
       return false
     }
-    var decoded = jwt.verify(token, process.env.JWT_SECRET)
+    let decoded = jwt.verify(token, process.env.JWT_SECRET)
 
     if(decoded && decoded.user){
 
@@ -259,13 +259,13 @@ User.validateSingup = async (token) => {
   const dbToken = await UserConfirmToken.findOne( {where: { token }, include: [{ model: User }]} )
 
   if(dbToken && dbToken.user){
-    cAt = new Date(dbToken.createdAt)
-    limit = new Date(cAt.getTime() + 1000 * 60 * 60) // 1 hour
+    const cAt = new Date(dbToken.createdAt)
+    const limit = new Date(cAt.getTime() + 1000 * 60 * 60) // 1 hour
     if( (new Date()).getTime() > limit.getTime()){
       dbToken.destroy()
       return false;
     }
-    var decoded = jwt.verify(token, dbToken.user.username + dbToken.user.password)
+    let decoded = jwt.verify(token, dbToken.user.username + dbToken.user.password)
 
     if(decoded && decoded.user){
 
@@ -282,7 +282,7 @@ User.validateSingup = async (token) => {
 
 
 User.prototype.verifyToken = function(token){
-  var decoded = jwt.verify(token, this.password)
+  let decoded = jwt.verify(token, this.password)
   return decoded && decoded.user && decoded.user.extra
   
 }
@@ -301,8 +301,8 @@ User.authenticate = async function(username, password) {
 
   if(user.blockedLogin)
   {
-    blockedTime = new Date(user.blockedTime)
-    datenow = new Date()
+    const blockedTime = new Date(user.blockedTime)
+    const datenow = new Date()
 
     blockedTime.setMinutes(blockedTime.getMinutes() + 3)
 
@@ -971,7 +971,7 @@ FilePendingDeletion.checkFilePendingDeletion = async (streamableDir) => {
     const fpds = await FilePendingDeletion.findAll({where: { createdAt: { [OP.lt]: fpddate  } }})
 
     for(const f of fpds ){
-      path = Path.join(streamableDir, f.dirname)
+      const path = Path.join(streamableDir, f.dirname)
       console.log(`Deleting content of ${path}`)
       fs.rmSync(path, {recursive: true})
       await f.destroy();
